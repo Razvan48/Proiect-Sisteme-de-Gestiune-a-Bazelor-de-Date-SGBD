@@ -1,0 +1,2817 @@
+/*
+SELECT * FROM locatie;
+SELECT * FROM hotel;
+SELECT * FROM camera;
+SELECT * FROM facilitate;
+SELECT * FROM client;
+SELECT * FROM camera_prezinta_facilitate;
+SELECT * FROM client_rezerva_camera;
+SELECT * FROM zona_de_parcare;
+SELECT * FROM loc_de_parcare;
+SELECT * FROM furnizor;
+SELECT * FROM contract;
+SELECT * FROM fel_de_mancare;
+SELECT * FROM restaurant;
+SELECT * FROM restaurant_serveste_fel_de_mancare;
+SELECT * FROM furnizor_semneaza_cu_restaurant_mai_multe_contracte;
+SELECT * FROM angajat;
+SELECT * FROM paznic;
+SELECT * FROM receptionist;
+SELECT * FROM administrator;
+SELECT * FROM chelner;
+SELECT * FROM bucatar;
+*/
+
+/*
+DROP SEQUENCE secventa_locatie;
+DROP SEQUENCE secventa_hotel;
+DROP SEQUENCE secventa_camera;
+DROP SEQUENCE secventa_facilitate;
+DROP SEQUENCE secventa_client;
+DROP SEQUENCE secventa_zona_de_parcare;
+DROP SEQUENCE secventa_loc_de_parcare;
+DROP SEQUENCE secventa_furnizor;
+DROP SEQUENCE secventa_contract;
+DROP SEQUENCE secventa_fel_de_mancare;
+DROP SEQUENCE secventa_restaurant;
+DROP SEQUENCE secventa_angajat;
+
+DROP TABLE bucatar;
+DROP TABLE chelner;
+DROP TABLE administrator;
+DROP TABLE receptionist;
+DROP TABLE paznic;
+DROP TABLE angajat;
+DROP TABLE furnizor_semneaza_cu_restaurant_mai_multe_contracte;
+DROP TABLE restaurant_serveste_fel_de_mancare;
+DROP TABLE restaurant;
+DROP TABLE fel_de_mancare;
+DROP TABLE contract;
+DROP TABLE furnizor;
+DROP TABLE loc_de_parcare;
+DROP TABLE zona_de_parcare;
+DROP TABLE client_rezerva_camera;
+DROP TABLE camera_prezinta_facilitate;
+DROP TABLE client;
+DROP TABLE facilitate;
+DROP TABLE camera;
+DROP TABLE hotel;
+DROP TABLE locatie;
+*/
+
+CREATE SEQUENCE secventa_locatie
+INCREMENT BY 1
+START WITH 1
+MAXVALUE 9999999999
+NOCYCLE;
+
+CREATE SEQUENCE secventa_hotel
+INCREMENT BY 1
+START WITH 1
+MAXVALUE 9999999999
+NOCYCLE;
+
+CREATE SEQUENCE secventa_camera
+INCREMENT BY 1
+START WITH 1
+MAXVALUE 9999999999
+NOCYCLE;
+
+CREATE SEQUENCE secventa_facilitate
+INCREMENT BY 1
+START WITH 1
+MAXVALUE 9999999999
+NOCYCLE;
+
+CREATE SEQUENCE secventa_client
+INCREMENT BY 1
+START WITH 1
+MAXVALUE 9999999999
+NOCYCLE;
+
+CREATE SEQUENCE secventa_zona_de_parcare
+INCREMENT BY 1
+START WITH 1
+MAXVALUE 9999999999
+NOCYCLE;
+
+CREATE SEQUENCE secventa_loc_de_parcare
+INCREMENT BY 1
+START WITH 1
+MAXVALUE 9999999999
+NOCYCLE;
+
+CREATE SEQUENCE secventa_furnizor
+INCREMENT BY 1
+START WITH 1
+MAXVALUE 9999999999
+NOCYCLE;
+
+CREATE SEQUENCE secventa_contract
+INCREMENT BY 1
+START WITH 1
+MAXVALUE 9999999999
+NOCYCLE;
+
+CREATE SEQUENCE secventa_fel_de_mancare
+INCREMENT BY 1
+START WITH 1
+MAXVALUE 9999999999
+NOCYCLE;
+
+CREATE SEQUENCE secventa_restaurant
+INCREMENT BY 1
+START WITH 1
+MAXVALUE 9999999999
+NOCYCLE;
+
+CREATE SEQUENCE secventa_angajat
+INCREMENT BY 1
+START WITH 1
+MAXVALUE 9999999999
+NOCYCLE;
+
+CREATE TABLE locatie
+(
+    cod_locatie NUMBER(10) PRIMARY KEY,
+    adresa VARCHAR2(50) NOT NULL
+);
+
+CREATE TABLE hotel
+(
+    cod_hotel NUMBER(10) PRIMARY KEY,
+    denumire VARCHAR2(50) NOT NULL,
+    numar_stele NUMBER(1),
+    an_infiintare NUMBER(4),
+    cod_locatie NUMBER(10) REFERENCES locatie(cod_locatie) NOT NULL
+);
+
+CREATE TABLE camera
+(
+    cod_camera NUMBER(10) NOT NULL,
+    cod_hotel NUMBER(10) REFERENCES hotel(cod_hotel) NOT NULL,
+    PRIMARY KEY (cod_camera, cod_hotel),
+    numar NUMBER(10) NOT NULL CHECK(numar > 0),
+    etaj NUMBER(3) DEFAULT 0 CHECK(etaj >= 0) NOT NULL
+);
+
+CREATE TABLE facilitate
+(
+    cod_facilitate NUMBER(10) PRIMARY KEY,
+    denumire VARCHAR2(50) NOT NULL
+);
+
+CREATE TABLE client
+(
+    cod_client NUMBER(10) PRIMARY KEY,
+    nume VARCHAR2(50) NOT NULL,
+    prenume VARCHAR2(50) NOT NULL,
+    cnp VARCHAR2(13),
+    numar_telefon VARCHAR2(50) NOT NULL,
+    adresa_mail VARCHAR2(50)
+);
+
+CREATE TABLE camera_prezinta_facilitate
+(
+    cod_camera NUMBER(10) NOT NULL,
+    cod_hotel NUMBER(10) NOT NULL,
+    cod_facilitate NUMBER(10) REFERENCES facilitate(cod_facilitate) NOT NULL,
+    FOREIGN KEY(cod_camera, cod_hotel) REFERENCES camera(cod_camera, cod_hotel),
+    PRIMARY KEY(cod_camera, cod_hotel, cod_facilitate)
+);
+
+CREATE TABLE client_rezerva_camera
+(
+    cod_client NUMBER(10) REFERENCES client(cod_client) NOT NULL,
+    cod_camera NUMBER(10) NOT NULL,
+    cod_hotel NUMBER(10) NOT NULL,
+    data_inceput DATE DEFAULT SYSDATE NOT NULL,
+    data_sfarsit DATE NOT NULL,
+    FOREIGN KEY (cod_camera, cod_hotel) REFERENCES camera(cod_camera, cod_hotel),
+    CONSTRAINT check_date_client_rezerva_camera CHECK(data_inceput <= data_sfarsit),
+    PRIMARY KEY (cod_client, cod_camera, cod_hotel, data_inceput, data_sfarsit)
+);
+
+CREATE TABLE zona_de_parcare
+(
+    cod_zona_de_parcare NUMBER(10) PRIMARY KEY,
+    cod_hotel NUMBER(10) REFERENCES hotel(cod_hotel) NOT NULL,
+    cod_locatie NUMBER(10) REFERENCES locatie(cod_locatie) NOT NULL
+);
+
+CREATE TABLE loc_de_parcare
+(
+    cod_loc_de_parcare NUMBER(10) NOT NULL,
+    cod_zona_de_parcare NUMBER(10) NOT NULL,
+    PRIMARY KEY (cod_loc_de_parcare, cod_zona_de_parcare),
+    numar NUMBER(10) CHECK(numar > 0) NOT NULL
+);
+
+CREATE TABLE furnizor
+(
+    cod_furnizor NUMBER(10) PRIMARY KEY,
+    nume VARCHAR2(50) NOT NULL
+);
+
+CREATE TABLE contract
+(
+    cod_contract NUMBER(10) PRIMARY KEY,
+    data_inceput DATE DEFAULT SYSDATE NOT NULL,
+    data_sfarsit DATE NOT NULL,
+    CONSTRAINT check_date_contract CHECK(data_inceput <= data_sfarsit)
+);
+
+CREATE TABLE fel_de_mancare
+(
+    cod_fel_de_mancare NUMBER(10) PRIMARY KEY,
+    denumire VARCHAR2(50) NOT NULL,
+    pret NUMBER(5) NOT NULL
+);
+
+CREATE TABLE restaurant
+(
+    cod_restaurant NUMBER(10) PRIMARY KEY,
+    cod_hotel NUMBER(10) REFERENCES hotel(cod_hotel) NOT NULL,
+    cod_locatie NUMBER(10) REFERENCES locatie(cod_locatie) NOT NULL,
+    denumire VARCHAR2(50) NOT NULL,
+    numar_stele NUMBER(1),
+    an_infiintare NUMBER(4)
+);
+
+CREATE TABLE restaurant_serveste_fel_de_mancare
+(
+    cod_restaurant NUMBER(10) REFERENCES restaurant(cod_restaurant) NOT NULL,
+    cod_fel_de_mancare NUMBER(10) REFERENCES fel_de_mancare(cod_fel_de_mancare) NOT NULL,
+    PRIMARY KEY (cod_restaurant, cod_fel_de_mancare)
+);
+
+CREATE TABLE furnizor_semneaza_cu_restaurant_mai_multe_contracte
+(
+    cod_restaurant NUMBER(10) REFERENCES restaurant(cod_restaurant) NOT NULL,
+    cod_furnizor NUMBER(10) REFERENCES furnizor(cod_furnizor) NOT NULL,
+    cod_contract NUMBER(10) REFERENCES contract(cod_contract) NOT NULL,
+    PRIMARY KEY (cod_restaurant, cod_furnizor, cod_contract)
+);
+
+CREATE TABLE angajat
+(
+    cod_angajat NUMBER(10) PRIMARY KEY,
+    nume VARCHAR2(50) NOT NULL,
+    prenume VARCHAR2(50) NOT NULL,
+    cnp VARCHAR2(13) NOT NULL,
+    numar_telefon VARCHAR2(50) NOT NULL,
+    adresa_mail VARCHAR2(50),
+    salariu NUMBER(10) NOT NULL
+);
+
+CREATE TABLE paznic
+(
+    cod_angajat NUMBER(10) PRIMARY KEY REFERENCES angajat(cod_angajat),
+    cod_zona_de_parcare NUMBER(10) REFERENCES zona_de_parcare(cod_zona_de_parcare)
+);
+
+CREATE TABLE receptionist
+(
+    cod_angajat NUMBER(10) PRIMARY KEY REFERENCES angajat(cod_angajat),
+    cod_hotel NUMBER(10) REFERENCES hotel(cod_hotel)
+);
+
+CREATE TABLE administrator
+(
+    cod_angajat NUMBER(10) PRIMARY KEY REFERENCES angajat(cod_angajat),
+    cod_hotel NUMBER(10) REFERENCES hotel(cod_hotel)
+);
+
+CREATE TABLE chelner
+(
+    cod_angajat NUMBER(10) PRIMARY KEY REFERENCES angajat(cod_angajat),
+    cod_restaurant NUMBER(10) REFERENCES restaurant(cod_restaurant)
+);
+
+CREATE TABLE bucatar
+(
+    cod_angajat NUMBER(10) PRIMARY KEY REFERENCES angajat(cod_angajat),
+    cod_restaurant NUMBER(10) REFERENCES restaurant(cod_restaurant)
+);
+
+INSERT INTO locatie(cod_locatie, adresa)
+VALUES(secventa_locatie.NEXTVAL, 'Zona 1');
+INSERT INTO locatie(cod_locatie, adresa)
+VALUES(secventa_locatie.NEXTVAL, 'Zona 2');
+INSERT INTO locatie(cod_locatie, adresa)
+VALUES(secventa_locatie.NEXTVAL, 'Zona 3');
+INSERT INTO locatie(cod_locatie, adresa)
+VALUES(secventa_locatie.NEXTVAL, 'Zona 4');
+INSERT INTO locatie(cod_locatie, adresa)
+VALUES(secventa_locatie.NEXTVAL, 'Zona 5');
+INSERT INTO locatie(cod_locatie, adresa)
+VALUES(secventa_locatie.NEXTVAL, 'Zona 6');
+INSERT INTO locatie(cod_locatie, adresa)
+VALUES(secventa_locatie.NEXTVAL, 'Zona 7');
+INSERT INTO locatie(cod_locatie, adresa)
+VALUES(secventa_locatie.NEXTVAL, 'Centru');
+INSERT INTO locatie(cod_locatie, adresa)
+VALUES(secventa_locatie.NEXTVAL, 'Periferie');
+
+INSERT INTO hotel(cod_hotel, denumire, numar_stele, an_infiintare, cod_locatie)
+VALUES(secventa_hotel.NEXTVAL, 'Continental', 3, 1965, 1);
+INSERT INTO hotel(cod_hotel, denumire, numar_stele, an_infiintare, cod_locatie)
+VALUES(secventa_hotel.NEXTVAL, 'Europa', 4, 1993, 1);
+INSERT INTO hotel(cod_hotel, denumire, numar_stele, an_infiintare, cod_locatie)
+VALUES(secventa_hotel.NEXTVAL, 'Atena', 3, 1997, 1);
+INSERT INTO hotel(cod_hotel, denumire, numar_stele, an_infiintare, cod_locatie)
+VALUES(secventa_hotel.NEXTVAL, 'Sofia', 2, 1983, 2);
+INSERT INTO hotel(cod_hotel, denumire, numar_stele, an_infiintare, cod_locatie)
+VALUES(secventa_hotel.NEXTVAL, 'Mures', 4, 1975, 2);
+INSERT INTO hotel(cod_hotel, denumire, numar_stele, an_infiintare, cod_locatie)
+VALUES(secventa_hotel.NEXTVAL, 'Banat', 2, 1968, 2);
+INSERT INTO hotel(cod_hotel, denumire, numar_stele, an_infiintare, cod_locatie)
+VALUES(secventa_hotel.NEXTVAL, 'Transilvania', 3, 1970, 3);
+INSERT INTO hotel(cod_hotel, denumire, numar_stele, an_infiintare, cod_locatie)
+VALUES(secventa_hotel.NEXTVAL, 'Moldova', NULL, NULL, 3);
+INSERT INTO hotel(cod_hotel, denumire, numar_stele, an_infiintare, cod_locatie)
+VALUES(secventa_hotel.NEXTVAL, 'Dobrogea', 5, NULL, 9);
+INSERT INTO hotel(cod_hotel, denumire, numar_stele, an_infiintare, cod_locatie)
+VALUES(secventa_hotel.NEXTVAL, 'Basarabia', 1, 1950, 9);
+INSERT INTO hotel(cod_hotel, denumire, numar_stele, an_infiintare, cod_locatie)
+VALUES(secventa_hotel.NEXTVAL, 'Bucovina', NULL, NULL, 9);
+INSERT INTO hotel(cod_hotel, denumire, numar_stele, an_infiintare, cod_locatie)
+VALUES(secventa_hotel.NEXTVAL, 'Transnistria', NULL, NULL, 8);
+INSERT INTO hotel(cod_hotel, denumire, numar_stele, an_infiintare, cod_locatie)
+VALUES(secventa_hotel.NEXTVAL, 'Venetia', NULL, 1963, 8);
+INSERT INTO hotel(cod_hotel, denumire, numar_stele, an_infiintare, cod_locatie)
+VALUES(secventa_hotel.NEXTVAL, 'Dunare', 3, NULL, 8);
+INSERT INTO hotel(cod_hotel, denumire, numar_stele, an_infiintare, cod_locatie)
+VALUES(secventa_hotel.NEXTVAL, 'Carpati', NULL, 1968, 6);
+
+INSERT INTO camera(cod_camera, cod_hotel, numar)
+VALUES(secventa_camera.NEXTVAL, 1, 1);
+INSERT INTO camera(cod_camera, cod_hotel, numar, etaj)
+VALUES(secventa_camera.NEXTVAL, 1, 2, 1);
+INSERT INTO camera(cod_camera, cod_hotel, numar)
+VALUES(secventa_camera.NEXTVAL, 1, 3);
+INSERT INTO camera(cod_camera, cod_hotel, numar, etaj)
+VALUES(secventa_camera.NEXTVAL, 1, 4, 2);
+INSERT INTO camera(cod_camera, cod_hotel, numar)
+VALUES(secventa_camera.NEXTVAL, 1, 5);
+INSERT INTO camera(cod_camera, cod_hotel, numar)
+VALUES(secventa_camera.NEXTVAL, 2, 1);
+INSERT INTO camera(cod_camera, cod_hotel, numar, etaj)
+VALUES(secventa_camera.NEXTVAL, 2, 2, 3);
+INSERT INTO camera(cod_camera, cod_hotel, numar, etaj)
+VALUES(secventa_camera.NEXTVAL, 2, 3, 0);
+INSERT INTO camera(cod_camera, cod_hotel, numar, etaj)
+VALUES(secventa_camera.NEXTVAL, 2, 4, 7);
+INSERT INTO camera(cod_camera, cod_hotel, numar)
+VALUES(secventa_camera.NEXTVAL, 2, 5);
+INSERT INTO camera(cod_camera, cod_hotel, numar, etaj)
+VALUES(secventa_camera.NEXTVAL, 3, 1, 1);
+
+INSERT INTO facilitate(cod_facilitate, denumire)
+VALUES(secventa_facilitate.NEXTVAL, 'Camera Standard');
+INSERT INTO facilitate(cod_facilitate, denumire)
+VALUES(secventa_facilitate.NEXTVAL, 'Camera Dubla');
+INSERT INTO facilitate(cod_facilitate, denumire)
+VALUES(secventa_facilitate.NEXTVAL, 'Camera Tripla');
+INSERT INTO facilitate(cod_facilitate, denumire)
+VALUES(secventa_facilitate.NEXTVAL, 'Apartament');
+INSERT INTO facilitate(cod_facilitate, denumire)
+VALUES(secventa_facilitate.NEXTVAL, 'Balcon');
+INSERT INTO facilitate(cod_facilitate, denumire)
+VALUES(secventa_facilitate.NEXTVAL, 'Aer Conditionat');
+INSERT INTO facilitate(cod_facilitate, denumire)
+VALUES(secventa_facilitate.NEXTVAL, 'Room Service');
+
+INSERT INTO client(cod_client, nume, prenume, cnp, numar_telefon, adresa_mail)
+VALUES(secventa_client.NEXTVAL, 'Popescu', 'Ion', '1234567890123', '0701234567', 'popescu.ion@mail.ro');
+INSERT INTO client(cod_client, nume, prenume, cnp, numar_telefon, adresa_mail)
+VALUES(secventa_client.NEXTVAL, 'Ionescu', 'Mircea', '3210987654321', '0798765432', 'mircea_ionescu@mail.com');
+INSERT INTO client(cod_client, nume, prenume, cnp, numar_telefon, adresa_mail)
+VALUES(secventa_client.NEXTVAL, 'Andrei', 'Ionescu', '0001112223334', '0700111222', 'andreiionescu@mail.ro');
+INSERT INTO client(cod_client, nume, prenume, cnp, numar_telefon, adresa_mail)
+VALUES(secventa_client.NEXTVAL, 'Mihai', 'Paul', '9998887776665', '0799888777', 'paul.mihai@mail.com');
+INSERT INTO client(cod_client, nume, prenume, cnp, numar_telefon, adresa_mail)
+VALUES(secventa_client.NEXTVAL, 'Bogdan', 'Mircea', '0000011111222', '0777777777', NULL);
+INSERT INTO client(cod_client, nume, prenume, cnp, numar_telefon, adresa_mail)
+VALUES(secventa_client.NEXTVAL, 'Georgescu', 'Gheorghe', '0010011111222', '0777377777', 'georgescu_gheorghe@mail.ro');
+INSERT INTO client(cod_client, nume, prenume, cnp, numar_telefon, adresa_mail)
+VALUES(secventa_client.NEXTVAL, 'Vlad', 'Teodor', '2020202020202', '0755000555', NULL);
+INSERT INTO client(cod_client, nume, prenume, cnp, numar_telefon, adresa_mail)
+VALUES(secventa_client.NEXTVAL, 'Alexandru', 'Sebastian', '1313131313131', '0744333432', NULL);
+INSERT INTO client(cod_client, nume, prenume, cnp, numar_telefon, adresa_mail)
+VALUES(secventa_client.NEXTVAL, 'Mihailescu', 'Florin', '1717171717171', '0700000000', NULL);
+INSERT INTO client(cod_client, nume, prenume, cnp, numar_telefon, adresa_mail)
+VALUES(secventa_client.NEXTVAL, 'Andreescu', 'Robert', '1919191919191', '0711222333', NULL);
+
+INSERT INTO camera_prezinta_facilitate(cod_camera, cod_hotel, cod_facilitate)
+VALUES(1, 1, 1);
+INSERT INTO camera_prezinta_facilitate(cod_camera, cod_hotel, cod_facilitate)
+VALUES(1, 1, 6);
+INSERT INTO camera_prezinta_facilitate(cod_camera, cod_hotel, cod_facilitate)
+VALUES(1, 1, 7);
+INSERT INTO camera_prezinta_facilitate(cod_camera, cod_hotel, cod_facilitate)
+VALUES(9, 2, 3);
+INSERT INTO camera_prezinta_facilitate(cod_camera, cod_hotel, cod_facilitate)
+VALUES(9, 2, 5);
+INSERT INTO camera_prezinta_facilitate(cod_camera, cod_hotel, cod_facilitate)
+VALUES(9, 2, 6);
+INSERT INTO camera_prezinta_facilitate(cod_camera, cod_hotel, cod_facilitate)
+VALUES(9, 2, 7);
+INSERT INTO camera_prezinta_facilitate(cod_camera, cod_hotel, cod_facilitate)
+VALUES(10, 2, 4);
+INSERT INTO camera_prezinta_facilitate(cod_camera, cod_hotel, cod_facilitate)
+VALUES(10, 2, 5);
+INSERT INTO camera_prezinta_facilitate(cod_camera, cod_hotel, cod_facilitate)
+VALUES(10, 2, 6);
+INSERT INTO camera_prezinta_facilitate(cod_camera, cod_hotel, cod_facilitate)
+VALUES(8, 2, 2);
+INSERT INTO camera_prezinta_facilitate(cod_camera, cod_hotel, cod_facilitate)
+VALUES(8, 2, 7);
+INSERT INTO camera_prezinta_facilitate(cod_camera, cod_hotel, cod_facilitate)
+VALUES(7, 2, 7);
+INSERT INTO camera_prezinta_facilitate(cod_camera, cod_hotel, cod_facilitate)
+VALUES(7, 2, 6);
+INSERT INTO camera_prezinta_facilitate(cod_camera, cod_hotel, cod_facilitate)
+VALUES(7, 2, 1);
+
+INSERT INTO client_rezerva_camera(cod_client, cod_camera, cod_hotel, data_inceput, data_sfarsit)
+VALUES(1, 1, 1, TO_DATE('02-09-2023', 'dd-mm-yyyy'), TO_DATE('08-09-2023', 'dd-mm-yyyy'));
+INSERT INTO client_rezerva_camera(cod_client, cod_camera, cod_hotel, data_inceput, data_sfarsit)
+VALUES(2, 2, 1, TO_DATE('07-05-2023', 'dd-mm-yyyy'), TO_DATE('13-05-2023', 'dd-mm-yyyy'));
+INSERT INTO client_rezerva_camera(cod_client, cod_camera, cod_hotel, data_inceput, data_sfarsit)
+VALUES(3, 3, 1, TO_DATE('26-04-2023', 'dd-mm-yyyy'), TO_DATE('02-05-2023', 'dd-mm-yyyy'));
+INSERT INTO client_rezerva_camera(cod_client, cod_camera, cod_hotel, data_inceput, data_sfarsit)
+VALUES(4, 4, 1, TO_DATE('23-03-2023', 'dd-mm-yyyy'), TO_DATE('01-04-2023', 'dd-mm-yyyy'));
+INSERT INTO client_rezerva_camera(cod_client, cod_camera, cod_hotel, data_inceput, data_sfarsit)
+VALUES(5, 5, 1, TO_DATE('23-10-2023', 'dd-mm-yyyy'), TO_DATE('01-11-2023', 'dd-mm-yyyy'));
+INSERT INTO client_rezerva_camera(cod_client, cod_camera, cod_hotel, data_inceput, data_sfarsit)
+VALUES(5, 7, 2, TO_DATE('07-09-2023', 'dd-mm-yyyy'), TO_DATE('08-09-2023', 'dd-mm-yyyy'));
+INSERT INTO client_rezerva_camera(cod_client, cod_camera, cod_hotel, data_inceput, data_sfarsit)
+VALUES(6, 7, 2, TO_DATE('10-03-2023', 'dd-mm-yyyy'), TO_DATE('14-03-2023', 'dd-mm-yyyy'));
+INSERT INTO client_rezerva_camera(cod_client, cod_camera, cod_hotel, data_inceput, data_sfarsit)
+VALUES(6, 8, 2, TO_DATE('15-04-2023', 'dd-mm-yyyy'), TO_DATE('15-05-2023', 'dd-mm-yyyy'));
+INSERT INTO client_rezerva_camera(cod_client, cod_camera, cod_hotel, data_inceput, data_sfarsit)
+VALUES(9, 9, 2, TO_DATE('17-03-2023', 'dd-mm-yyyy'), TO_DATE('19-05-2023', 'dd-mm-yyyy'));
+INSERT INTO client_rezerva_camera(cod_client, cod_camera, cod_hotel, data_inceput, data_sfarsit)
+VALUES(9, 9, 2, TO_DATE('01-01-2023', 'dd-mm-yyyy'), TO_DATE('01-02-2023', 'dd-mm-yyyy'));
+
+INSERT INTO zona_de_parcare(cod_zona_de_parcare, cod_hotel, cod_locatie)
+VALUES(secventa_zona_de_parcare.NEXTVAL, 1, 1);
+INSERT INTO zona_de_parcare(cod_zona_de_parcare, cod_hotel, cod_locatie)
+VALUES(secventa_zona_de_parcare.NEXTVAL, 2, 2);
+INSERT INTO zona_de_parcare(cod_zona_de_parcare, cod_hotel, cod_locatie)
+VALUES(secventa_zona_de_parcare.NEXTVAL, 3, 4);
+INSERT INTO zona_de_parcare(cod_zona_de_parcare, cod_hotel, cod_locatie)
+VALUES(secventa_zona_de_parcare.NEXTVAL, 1, 1);
+INSERT INTO zona_de_parcare(cod_zona_de_parcare, cod_hotel, cod_locatie)
+VALUES(secventa_zona_de_parcare.NEXTVAL, 4, 3);
+INSERT INTO zona_de_parcare(cod_zona_de_parcare, cod_hotel, cod_locatie)
+VALUES(secventa_zona_de_parcare.NEXTVAL, 5, 5);
+INSERT INTO zona_de_parcare(cod_zona_de_parcare, cod_hotel, cod_locatie)
+VALUES(secventa_zona_de_parcare.NEXTVAL, 6, 5);
+INSERT INTO zona_de_parcare(cod_zona_de_parcare, cod_hotel, cod_locatie)
+VALUES(secventa_zona_de_parcare.NEXTVAL, 1, 5);
+INSERT INTO zona_de_parcare(cod_zona_de_parcare, cod_hotel, cod_locatie)
+VALUES(secventa_zona_de_parcare.NEXTVAL, 7, 6);
+INSERT INTO zona_de_parcare(cod_zona_de_parcare, cod_hotel, cod_locatie)
+VALUES(secventa_zona_de_parcare.NEXTVAL, 8, 6);
+
+INSERT INTO loc_de_parcare(cod_loc_de_parcare, cod_zona_de_parcare, numar)
+VALUES(secventa_loc_de_parcare.NEXTVAL, 1, 1);
+INSERT INTO loc_de_parcare(cod_loc_de_parcare, cod_zona_de_parcare, numar)
+VALUES(secventa_loc_de_parcare.NEXTVAL, 1, 2);
+INSERT INTO loc_de_parcare(cod_loc_de_parcare, cod_zona_de_parcare, numar)
+VALUES(secventa_loc_de_parcare.NEXTVAL, 1, 3);
+INSERT INTO loc_de_parcare(cod_loc_de_parcare, cod_zona_de_parcare, numar)
+VALUES(secventa_loc_de_parcare.NEXTVAL, 1, 4);
+INSERT INTO loc_de_parcare(cod_loc_de_parcare, cod_zona_de_parcare, numar)
+VALUES(secventa_loc_de_parcare.NEXTVAL, 1, 5);
+INSERT INTO loc_de_parcare(cod_loc_de_parcare, cod_zona_de_parcare, numar)
+VALUES(secventa_loc_de_parcare.NEXTVAL, 1, 6);
+INSERT INTO loc_de_parcare(cod_loc_de_parcare, cod_zona_de_parcare, numar)
+VALUES(secventa_loc_de_parcare.NEXTVAL, 2, 1);
+INSERT INTO loc_de_parcare(cod_loc_de_parcare, cod_zona_de_parcare, numar)
+VALUES(secventa_loc_de_parcare.NEXTVAL, 2, 2);
+INSERT INTO loc_de_parcare(cod_loc_de_parcare, cod_zona_de_parcare, numar)
+VALUES(secventa_loc_de_parcare.NEXTVAL, 2, 3);
+INSERT INTO loc_de_parcare(cod_loc_de_parcare, cod_zona_de_parcare, numar)
+VALUES(secventa_loc_de_parcare.NEXTVAL, 2, 4);
+INSERT INTO loc_de_parcare(cod_loc_de_parcare, cod_zona_de_parcare, numar)
+VALUES(secventa_loc_de_parcare.NEXTVAL, 3, 1);
+INSERT INTO loc_de_parcare(cod_loc_de_parcare, cod_zona_de_parcare, numar)
+VALUES(secventa_loc_de_parcare.NEXTVAL, 3, 2);
+INSERT INTO loc_de_parcare(cod_loc_de_parcare, cod_zona_de_parcare, numar)
+VALUES(secventa_loc_de_parcare.NEXTVAL, 3, 3);
+INSERT INTO loc_de_parcare(cod_loc_de_parcare, cod_zona_de_parcare, numar)
+VALUES(secventa_loc_de_parcare.NEXTVAL, 3, 4);
+INSERT INTO loc_de_parcare(cod_loc_de_parcare, cod_zona_de_parcare, numar)
+VALUES(secventa_loc_de_parcare.NEXTVAL, 3, 5);
+
+INSERT INTO furnizor(cod_furnizor, nume)
+VALUES(secventa_furnizor.NEXTVAL, 'Brutaria Iberia S.R.L.');
+INSERT INTO furnizor(cod_furnizor, nume)
+VALUES(secventa_furnizor.NEXTVAL, 'Macelaria Creta S.R.L.');
+INSERT INTO furnizor(cod_furnizor, nume)
+VALUES(secventa_furnizor.NEXTVAL, 'Apa Dorna S.R.L.');
+INSERT INTO furnizor(cod_furnizor, nume)
+VALUES(secventa_furnizor.NEXTVAL, 'Brutaria Pavel S.R.L.');
+INSERT INTO furnizor(cod_furnizor, nume)
+VALUES(secventa_furnizor.NEXTVAL, 'Macelarie Centru S.R.L.');
+INSERT INTO furnizor(cod_furnizor, nume)
+VALUES(secventa_furnizor.NEXTVAL, 'Apa Carpatica S.R.L.');
+
+INSERT INTO contract(cod_contract, data_inceput, data_sfarsit)
+VALUES(secventa_contract.NEXTVAL, TO_DATE('02-09-2023', 'dd-mm-yyyy'), TO_DATE('02-12-2023', 'dd-mm-yyyy'));
+INSERT INTO contract(cod_contract, data_inceput, data_sfarsit)
+VALUES(secventa_contract.NEXTVAL, TO_DATE('01-01-2024', 'dd-mm-yyyy'), TO_DATE('01-01-2025', 'dd-mm-yyyy'));
+INSERT INTO contract(cod_contract, data_inceput, data_sfarsit)
+VALUES(secventa_contract.NEXTVAL, TO_DATE('01-01-2023', 'dd-mm-yyyy'), TO_DATE('01-07-2023', 'dd-mm-yyyy'));
+INSERT INTO contract(cod_contract, data_inceput, data_sfarsit)
+VALUES(secventa_contract.NEXTVAL, TO_DATE('01-01-2023', 'dd-mm-yyyy'), TO_DATE('01-08-2023', 'dd-mm-yyyy'));
+INSERT INTO contract(cod_contract, data_inceput, data_sfarsit)
+VALUES(secventa_contract.NEXTVAL, TO_DATE('01-09-2023', 'dd-mm-yyyy'), TO_DATE('01-01-2024', 'dd-mm-yyyy'));
+INSERT INTO contract(cod_contract, data_inceput, data_sfarsit)
+VALUES(secventa_contract.NEXTVAL, TO_DATE('01-03-2023', 'dd-mm-yyyy'), TO_DATE('01-04-2023', 'dd-mm-yyyy'));
+INSERT INTO contract(cod_contract, data_inceput, data_sfarsit)
+VALUES(secventa_contract.NEXTVAL, TO_DATE('01-04-2023', 'dd-mm-yyyy'), TO_DATE('12-05-2023', 'dd-mm-yyyy'));
+INSERT INTO contract(cod_contract, data_inceput, data_sfarsit)
+VALUES(secventa_contract.NEXTVAL, TO_DATE('26-04-2023', 'dd-mm-yyyy'), TO_DATE('02-06-2023', 'dd-mm-yyyy'));
+INSERT INTO contract(cod_contract, data_inceput, data_sfarsit)
+VALUES(secventa_contract.NEXTVAL, TO_DATE('01-09-2023', 'dd-mm-yyyy'), TO_DATE('01-01-2025', 'dd-mm-yyyy'));
+
+INSERT INTO fel_de_mancare(cod_fel_de_mancare, denumire, pret)
+VALUES(secventa_fel_de_mancare.NEXTVAL, 'Ciorba De Legume', 11);
+INSERT INTO fel_de_mancare(cod_fel_de_mancare, denumire, pret)
+VALUES(secventa_fel_de_mancare.NEXTVAL, 'Ciorba De Perisoare', 12);
+INSERT INTO fel_de_mancare(cod_fel_de_mancare, denumire, pret)
+VALUES(secventa_fel_de_mancare.NEXTVAL, 'Ciorba De Pui', 13);
+INSERT INTO fel_de_mancare(cod_fel_de_mancare, denumire, pret)
+VALUES(secventa_fel_de_mancare.NEXTVAL, 'Supa De Legume', 7);
+INSERT INTO fel_de_mancare(cod_fel_de_mancare, denumire, pret)
+VALUES(secventa_fel_de_mancare.NEXTVAL, 'Cartofi Prajiti', 15);
+INSERT INTO fel_de_mancare(cod_fel_de_mancare, denumire, pret)
+VALUES(secventa_fel_de_mancare.NEXTVAL, 'Piure', 12);
+INSERT INTO fel_de_mancare(cod_fel_de_mancare, denumire, pret)
+VALUES(secventa_fel_de_mancare.NEXTVAL, 'Spaghete Carbonara', 22);
+INSERT INTO fel_de_mancare(cod_fel_de_mancare, denumire, pret)
+VALUES(secventa_fel_de_mancare.NEXTVAL, 'Pizza', 27);
+INSERT INTO fel_de_mancare(cod_fel_de_mancare, denumire, pret)
+VALUES(secventa_fel_de_mancare.NEXTVAL, 'Limonada', 7);
+INSERT INTO fel_de_mancare(cod_fel_de_mancare, denumire, pret)
+VALUES(secventa_fel_de_mancare.NEXTVAL, 'Somon', 24);
+INSERT INTO fel_de_mancare(cod_fel_de_mancare, denumire, pret)
+VALUES(secventa_fel_de_mancare.NEXTVAL, 'Snitel De Pui', 14);
+INSERT INTO fel_de_mancare(cod_fel_de_mancare, denumire, pret)
+VALUES(secventa_fel_de_mancare.NEXTVAL, 'Coca Cola', 7);
+INSERT INTO fel_de_mancare(cod_fel_de_mancare, denumire, pret)
+VALUES(secventa_fel_de_mancare.NEXTVAL, 'Pepsi', 7);
+INSERT INTO fel_de_mancare(cod_fel_de_mancare, denumire, pret)
+VALUES(secventa_fel_de_mancare.NEXTVAL, 'Sprite', 7);
+INSERT INTO fel_de_mancare(cod_fel_de_mancare, denumire, pret)
+VALUES(secventa_fel_de_mancare.NEXTVAL, 'Fanta', 7);
+
+INSERT INTO restaurant(cod_restaurant, cod_hotel, cod_locatie, denumire, numar_stele, an_infiintare)
+VALUES(secventa_restaurant.NEXTVAL, 1, 5, 'Roma', 3, 1995);
+INSERT INTO restaurant(cod_restaurant, cod_hotel, cod_locatie, denumire, numar_stele, an_infiintare)
+VALUES(secventa_restaurant.NEXTVAL, 1, 2, 'Milano', 2, NULL);
+INSERT INTO restaurant(cod_restaurant, cod_hotel, cod_locatie, denumire, numar_stele, an_infiintare)
+VALUES(secventa_restaurant.NEXTVAL, 1, 5, 'Savoia', NULL, 2000);
+INSERT INTO restaurant(cod_restaurant, cod_hotel, cod_locatie, denumire, numar_stele, an_infiintare)
+VALUES(secventa_restaurant.NEXTVAL, 7, 3, 'Varsovia', 4, 2004);
+INSERT INTO restaurant(cod_restaurant, cod_hotel, cod_locatie, denumire, numar_stele, an_infiintare)
+VALUES(secventa_restaurant.NEXTVAL, 1, 5, 'Napoli', NULL, 2008);
+INSERT INTO restaurant(cod_restaurant, cod_hotel, cod_locatie, denumire, numar_stele, an_infiintare)
+VALUES(secventa_restaurant.NEXTVAL, 4, 7, 'Madrid', NULL, 1993);
+INSERT INTO restaurant(cod_restaurant, cod_hotel, cod_locatie, denumire, numar_stele, an_infiintare)
+VALUES(secventa_restaurant.NEXTVAL, 1, 5, 'Paris', NULL, NULL);
+INSERT INTO restaurant(cod_restaurant, cod_hotel, cod_locatie, denumire, numar_stele, an_infiintare)
+VALUES(secventa_restaurant.NEXTVAL, 2, 1, 'Lisabona', 3, NULL);
+
+INSERT INTO restaurant_serveste_fel_de_mancare(cod_restaurant, cod_fel_de_mancare)
+VALUES(1, 1);
+INSERT INTO restaurant_serveste_fel_de_mancare(cod_restaurant, cod_fel_de_mancare)
+VALUES(1, 2);
+INSERT INTO restaurant_serveste_fel_de_mancare(cod_restaurant, cod_fel_de_mancare)
+VALUES(2, 3);
+INSERT INTO restaurant_serveste_fel_de_mancare(cod_restaurant, cod_fel_de_mancare)
+VALUES(2, 4);
+INSERT INTO restaurant_serveste_fel_de_mancare(cod_restaurant, cod_fel_de_mancare)
+VALUES(2, 5);
+INSERT INTO restaurant_serveste_fel_de_mancare(cod_restaurant, cod_fel_de_mancare)
+VALUES(1, 5);
+INSERT INTO restaurant_serveste_fel_de_mancare(cod_restaurant, cod_fel_de_mancare)
+VALUES(1, 7);
+INSERT INTO restaurant_serveste_fel_de_mancare(cod_restaurant, cod_fel_de_mancare)
+VALUES(3, 2);
+INSERT INTO restaurant_serveste_fel_de_mancare(cod_restaurant, cod_fel_de_mancare)
+VALUES(3, 5);
+INSERT INTO restaurant_serveste_fel_de_mancare(cod_restaurant, cod_fel_de_mancare)
+VALUES(4, 2);
+INSERT INTO restaurant_serveste_fel_de_mancare(cod_restaurant, cod_fel_de_mancare)
+VALUES(5, 2);
+INSERT INTO restaurant_serveste_fel_de_mancare(cod_restaurant, cod_fel_de_mancare)
+VALUES(6, 3);
+INSERT INTO restaurant_serveste_fel_de_mancare(cod_restaurant, cod_fel_de_mancare)
+VALUES(8, 4);
+INSERT INTO restaurant_serveste_fel_de_mancare(cod_restaurant, cod_fel_de_mancare)
+VALUES(1, 6);
+INSERT INTO restaurant_serveste_fel_de_mancare(cod_restaurant, cod_fel_de_mancare)
+VALUES(8, 6);
+INSERT INTO restaurant_serveste_fel_de_mancare(cod_restaurant, cod_fel_de_mancare)
+VALUES(1, 10);
+INSERT INTO restaurant_serveste_fel_de_mancare(cod_restaurant, cod_fel_de_mancare)
+VALUES(2, 8);
+
+INSERT INTO furnizor_semneaza_cu_restaurant_mai_multe_contracte(cod_restaurant, cod_furnizor, cod_contract)
+VALUES(1, 1, 1);
+INSERT INTO furnizor_semneaza_cu_restaurant_mai_multe_contracte(cod_restaurant, cod_furnizor, cod_contract)
+VALUES(1, 1, 2);
+INSERT INTO furnizor_semneaza_cu_restaurant_mai_multe_contracte(cod_restaurant, cod_furnizor, cod_contract)
+VALUES(1, 1, 3);
+INSERT INTO furnizor_semneaza_cu_restaurant_mai_multe_contracte(cod_restaurant, cod_furnizor, cod_contract)
+VALUES(1, 1, 4);
+INSERT INTO furnizor_semneaza_cu_restaurant_mai_multe_contracte(cod_restaurant, cod_furnizor, cod_contract)
+VALUES(2, 1, 5);
+INSERT INTO furnizor_semneaza_cu_restaurant_mai_multe_contracte(cod_restaurant, cod_furnizor, cod_contract)
+VALUES(2, 1, 6);
+INSERT INTO furnizor_semneaza_cu_restaurant_mai_multe_contracte(cod_restaurant, cod_furnizor, cod_contract)
+VALUES(2, 2, 1);
+INSERT INTO furnizor_semneaza_cu_restaurant_mai_multe_contracte(cod_restaurant, cod_furnizor, cod_contract)
+VALUES(2, 2, 6);
+INSERT INTO furnizor_semneaza_cu_restaurant_mai_multe_contracte(cod_restaurant, cod_furnizor, cod_contract)
+VALUES(3, 4, 1);
+INSERT INTO furnizor_semneaza_cu_restaurant_mai_multe_contracte(cod_restaurant, cod_furnizor, cod_contract)
+VALUES(3, 4, 2);
+INSERT INTO furnizor_semneaza_cu_restaurant_mai_multe_contracte(cod_restaurant, cod_furnizor, cod_contract)
+VALUES(3, 5, 3);
+INSERT INTO furnizor_semneaza_cu_restaurant_mai_multe_contracte(cod_restaurant, cod_furnizor, cod_contract)
+VALUES(3, 6, 4);
+INSERT INTO furnizor_semneaza_cu_restaurant_mai_multe_contracte(cod_restaurant, cod_furnizor, cod_contract)
+VALUES(3, 6, 5);
+INSERT INTO furnizor_semneaza_cu_restaurant_mai_multe_contracte(cod_restaurant, cod_furnizor, cod_contract)
+VALUES(3, 6, 6);
+INSERT INTO furnizor_semneaza_cu_restaurant_mai_multe_contracte(cod_restaurant, cod_furnizor, cod_contract)
+VALUES(4, 5, 5);
+INSERT INTO furnizor_semneaza_cu_restaurant_mai_multe_contracte(cod_restaurant, cod_furnizor, cod_contract)
+VALUES(4, 5, 6);
+
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Popescu', 'Florin', '0000000000001', '0700000001', NULL, 4000);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Stoica', 'Marius', '0000000000002', '0700000002', 'stoicamarius@mail.com', 4100);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Stan', 'Ioan', '0000000000003', '0700000003', NULL, 4200);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Vasilescu', 'George', '0000000000004', '0700000004', 'vasilescugeorge@mail.ro', 5000);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Vasilescu', 'Adrian', '0000000000005', '0700000005', NULL, 4700);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Radu', 'Andrei', '0000000000006', '0700000006', NULL, 4500);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Marinescu', 'Cristian', '0000000000007', '0700000007', NULL, 4300);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Marinescu', 'Dumitru', '0000000000008', '0700000008', 'dumitru.marinescu@mail.com', 5300);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Marin', 'Iacob', '0000000000009', '0700000009', NULL, 5200);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Florinescu', 'Cristian', '0000000000010', '0700000010', NULL, 4900);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Popa', 'Ion', '0000000000011', '0700000011', NULL, 4950);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Lupu', 'Daria', '0000000000012', '0700000012', NULL, 5500);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Adamescu', 'Luca', '0000000000013', '0700000013', NULL, 5500);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Ionescu', 'Mirela', '0000000000014', '0700000014', NULL, 5250);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Paraschiv', 'Darius', '0000000000015', '0700000015', 'paraschivdarius@mail.com', 5150);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Serban', 'Stefan', '0000000000016', '0700000016', NULL, 5050);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Victor', 'Camelia', '0000000000017', '0700000017', 'camelia.victor@mail.ro', 4750);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Dan', 'Oana', '0000000000018', '0700000018', 'dan_oana@mail.com', 4850);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Cosmin', 'Ciprian', '0000000000019', '0700000019', 'ciprian.cosmin@mail.ro', 5000);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Popescu', 'Iulian', '0000000000020', '0700000020', NULL, 5000);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Popescu', 'Lucian', '0000000000021', '0700000021', NULL, 5750);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Popescu', 'Raluca', '0000000000022', '0700000022', NULL, 6050);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Tudor', 'Serban', '0000000000023', '0700000023', 'serban.tudor@mail.com', 6350);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Octavian', 'Silviu', '0000000000024', '0700000024', NULL, 7050);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Valentin', 'Catalin', '0000000000025', '0700000025', NULL, 6750);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Emanuel', 'Anca', '0000000000026', '0700000026', 'emanuel.anca@mail.com', 6550);
+INSERT INTO angajat(cod_angajat, nume, prenume, cnp, numar_telefon, adresa_mail, salariu)
+VALUES(secventa_angajat.NEXTVAL, 'Sorin', 'Darius', '0000000000027', '0700000027', 'sorin.darius@mail.ro', 6350);
+
+
+INSERT INTO paznic(cod_angajat, cod_zona_de_parcare)
+VALUES(1, 1);
+INSERT INTO paznic(cod_angajat, cod_zona_de_parcare)
+VALUES(2, NULL);
+INSERT INTO paznic(cod_angajat, cod_zona_de_parcare)
+VALUES(3, 2);
+INSERT INTO paznic(cod_angajat, cod_zona_de_parcare)
+VALUES(4, 2);
+INSERT INTO paznic(cod_angajat, cod_zona_de_parcare)
+VALUES(5, 3);
+
+INSERT INTO receptionist(cod_angajat, cod_hotel)
+VALUES(6, NULL);
+INSERT INTO receptionist(cod_angajat, cod_hotel)
+VALUES(7, 2);
+INSERT INTO receptionist(cod_angajat, cod_hotel)
+VALUES(8, 1);
+INSERT INTO receptionist(cod_angajat, cod_hotel)
+VALUES(9, NULL);
+INSERT INTO receptionist(cod_angajat, cod_hotel)
+VALUES(10, 1);
+
+INSERT INTO chelner(cod_angajat, cod_restaurant)
+VALUES(11, 1);
+INSERT INTO chelner(cod_angajat, cod_restaurant)
+VALUES(12, 1);
+INSERT INTO chelner(cod_angajat, cod_restaurant)
+VALUES(13, 2);
+INSERT INTO chelner(cod_angajat, cod_restaurant)
+VALUES(14, 2);
+INSERT INTO chelner(cod_angajat, cod_restaurant)
+VALUES(15, 4);
+
+INSERT INTO bucatar(cod_angajat, cod_restaurant)
+VALUES(16, 1);
+INSERT INTO bucatar(cod_angajat, cod_restaurant)
+VALUES(17, NULL);
+INSERT INTO bucatar(cod_angajat, cod_restaurant)
+VALUES(18, 1);
+INSERT INTO bucatar(cod_angajat, cod_restaurant)
+VALUES(19, NULL);
+INSERT INTO bucatar(cod_angajat, cod_restaurant)
+VALUES(20, 1);
+
+INSERT INTO administrator(cod_angajat, cod_hotel)
+VALUES(21, 1);
+INSERT INTO administrator(cod_angajat, cod_hotel)
+VALUES(22, 2);
+INSERT INTO administrator(cod_angajat, cod_hotel)
+VALUES(23, 3);
+INSERT INTO administrator(cod_angajat, cod_hotel)
+VALUES(24, 4);
+INSERT INTO administrator(cod_angajat, cod_hotel)
+VALUES(25, NULL);
+
+/*
+COMMIT;
+*/
+
+/*
+ROLLBACK;
+*/
+
+/*
+Exercitiul 6
+Cerinta:
+Pentru fiecare hotel din baza de date sa se afiseze codul si denumirea acestuia, cat
+si codul tuturor camerelor si al tuturor zonelor de parcare ce apartin de hotelul respectiv.
+*/
+
+SET SERVEROUTPUT ON
+SET VERIFY OFF
+
+CREATE OR REPLACE PROCEDURE ex6 IS
+    TYPE tip_tabel_camera IS TABLE OF camera.cod_camera%TYPE;
+    TYPE tip_tabel_zona_de_parcare IS TABLE OF zona_de_parcare.cod_zona_de_parcare%TYPE INDEX BY BINARY_INTEGER;
+    TYPE tip_info_hotel IS RECORD
+    (
+        cod_hotel hotel.cod_hotel%TYPE,
+        denumire hotel.denumire%TYPE,
+        tabel_camera tip_tabel_camera,
+        tabel_zona_de_parcare tip_tabel_zona_de_parcare
+    );
+    TYPE tip_lista_hotel IS VARRAY(100) OF tip_info_hotel;
+    tabel_camera tip_tabel_camera;
+    tabel_zona_de_parcare tip_tabel_zona_de_parcare;
+    lista_hotel tip_lista_hotel := tip_lista_hotel();
+    TYPE tip_contor IS RECORD
+    (
+        cod_hotel hotel.cod_hotel%TYPE,
+        denumire hotel.denumire%TYPE
+    );
+    v_contor tip_contor;
+BEGIN
+    lista_hotel.DELETE;
+    FOR v_contor IN (SELECT cod_hotel, denumire FROM hotel)
+    LOOP
+        SELECT cod_camera BULK COLLECT INTO tabel_camera
+        FROM camera WHERE camera.cod_hotel = v_contor.cod_hotel;
+        
+        SELECT cod_zona_de_parcare BULK COLLECT INTO tabel_zona_de_parcare
+        FROM zona_de_parcare WHERE zona_de_parcare.cod_hotel = v_contor.cod_hotel;
+        
+        lista_hotel.EXTEND;
+        lista_hotel(lista_hotel.LAST) := tip_info_hotel(v_contor.cod_hotel, v_contor.denumire, tabel_camera, tabel_zona_de_parcare);
+    END LOOP;
+    
+    FOR i IN lista_hotel.FIRST..lista_hotel.LAST
+    LOOP
+        DBMS_OUTPUT.PUT_LINE('Hotelul ' || lista_hotel(i).cod_hotel || ', cu denumirea ' || lista_hotel(i).denumire || ', are urmatoarele camere si zone de parcare:');
+        
+        DBMS_OUTPUT.PUT_LINE('Camere:');
+        IF lista_hotel(i).tabel_camera.COUNT = 0 THEN
+            DBMS_OUTPUT.PUT_LINE('nu exista camere');
+        ELSE
+            FOR j IN lista_hotel(i).tabel_camera.FIRST..lista_hotel(i).tabel_camera.LAST
+            LOOP
+                DBMS_OUTPUT.PUT_LINE('camera ' || j);
+            END LOOP;
+        END IF;
+        
+        DBMS_OUTPUT.PUT_LINE('Zone de parcare:');
+        IF lista_hotel(i).tabel_zona_de_parcare.COUNT = 0 THEN
+            DBMS_OUTPUT.PUT_LINE('nu exista zone de parcare');
+        ELSE
+            FOR j IN lista_hotel(i).tabel_zona_de_parcare.FIRST..lista_hotel(i).tabel_zona_de_parcare.LAST
+            LOOP
+                DBMS_OUTPUT.PUT_LINE('zona de parcare ' || j);
+            END LOOP;
+        END IF;
+        
+    END LOOP;
+END ex6;
+/
+
+BEGIN
+    ex6;
+END;
+/
+
+
+/*
+Exercitiul 7
+Cerinta:
+Pentru fiecare locatie in care se afla macar un restaurant
+sa se afiseze codul si adresa locatiei, cat si codurile(fara repetitii) si denumirile tuturor
+felurilor de mancare ce pot fi servite la restaurantele din
+locatia respectiva. Sa se calculeze pentru fiecare locatie in parte cate astfel
+de feluri de mancare distincte se pot servi in locatia respectiva.
+*/
+
+SET SERVEROUTPUT ON
+SET VERIFY OFF
+
+CREATE OR REPLACE PROCEDURE ex7 IS
+    CURSOR c_locatie IS
+    SELECT l.cod_locatie, l.adresa,
+    CURSOR(SELECT COUNT(*) FROM restaurant r WHERE r.cod_locatie = l.cod_locatie)
+    FROM locatie l;
+    
+    CURSOR c_fel_de_mancare(codLocatie locatie.cod_locatie%TYPE) IS
+    SELECT DISTINCT m.cod_fel_de_mancare, m.denumire
+    FROM fel_de_mancare m JOIN restaurant_serveste_fel_de_mancare rm ON
+    m.cod_fel_de_mancare = rm.cod_fel_de_mancare
+    JOIN restaurant r ON rm.cod_restaurant = r.cod_restaurant
+    WHERE r.cod_locatie = codLocatie;
+    
+    v_cod_locatie locatie.cod_locatie%TYPE;
+    v_adresa locatie.adresa%TYPE;
+    
+    TYPE tip_ref_cursor IS REF CURSOR;
+    v_ref_cursor tip_ref_cursor;
+    
+    v_numar_restaurante NUMBER(10);
+    
+    v_cod_fel_de_mancare fel_de_mancare.cod_fel_de_mancare%TYPE;
+    v_denumire fel_de_mancare.denumire%TYPE;
+    
+    v_numar_feluri_de_mancare NUMBER(10);
+BEGIN
+    OPEN c_locatie;
+    LOOP
+        FETCH c_locatie INTO v_cod_locatie, v_adresa, v_ref_cursor;
+        
+        EXIT WHEN c_locatie%NOTFOUND;
+        
+        v_numar_restaurante := 0;
+        
+        LOOP
+            FETCH v_ref_cursor INTO v_numar_restaurante;
+            
+            EXIT WHEN v_ref_cursor%NOTFOUND;
+        END LOOP;
+        
+        IF v_numar_restaurante > 0 THEN
+            DBMS_OUTPUT.PUT_LINE('In locatia ' || v_cod_locatie || ', cu adresa ' || v_adresa || ', se pot servi urmatoarele feluri de mancare');
+            
+            v_numar_feluri_de_mancare := 0;
+            
+            OPEN c_fel_de_mancare(v_cod_locatie);
+            LOOP
+                FETCH c_fel_de_mancare INTO v_cod_fel_de_mancare, v_denumire;
+                EXIT WHEN c_fel_de_mancare%NOTFOUND;
+                
+                v_numar_feluri_de_mancare := v_numar_feluri_de_mancare + 1;
+                
+                DBMS_OUTPUT.PUT_LINE(v_cod_fel_de_mancare || ' ' || v_denumire);
+            END LOOP;
+            CLOSE c_fel_de_mancare;
+            
+            DBMS_OUTPUT.PUT_LINE('Numarul de feluri de mancare distincte este ' || v_numar_feluri_de_mancare);
+            
+        END IF;
+        
+    END LOOP;  
+    CLOSE c_locatie;
+END ex7;
+/
+
+BEGIN
+    ex7;
+END;
+/
+
+/*
+Exercitiul 8
+Cerinta:
+Sa se scrie o functie care pentru un numar n dat returneaza al n-lea cel mai bine platit
+angajat din baza de date(cod angajat, nume, prenume, salariu), indiferent de functia pe care acesta o detine(poate sa nu detina vreo functie).
+De asemenea, in functie de pozitia sa detinuta, se va mentiona la
+ce hotel/restaurant/zona de parcare (cod hotel/cod restaurant/cod zona de parcare) lucreaza angajatul respectiv, cat si locatia (cod locatie si adresa)
+unde se afla hotelul/restaurantul/zona de parcare respectiva.
+Daca angajatul nu are asociat un loc unde lucreaza, atunci se va intoarce null pentru aceste campuri.
+Daca in baza de date nu exista niciun angajat, atunci se va declansa exceptia NO_DATA_FOUND.
+Daca in baza de date exista angajati, dar nu exista al n-lea cel mai bine platit angajat sau n e 0 sau numar negativ, atunci vor fi declansate exceptii definite de utilizator.
+Se garanteaza ca fiecare angajat are un salariu asociat.
+*/
+
+SET SERVEROUTPUT ON
+SET VERIFY OFF
+
+CREATE OR REPLACE TYPE tip_ex8 AS OBJECT
+(
+    cod_angajat NUMBER(10),
+    nume VARCHAR2(50),
+    prenume VARCHAR2(50),
+    salariu NUMBER(10),
+    cod_munca NUMBER(10),
+    tip_munca VARCHAR2(50),
+    cod_locatie NUMBER(10),
+    adresa VARCHAR2(50)
+);
+/
+
+CREATE OR REPLACE FUNCTION ex8(N NUMBER) RETURN tip_ex8 IS
+    TYPE tip_lista_angajat IS VARRAY(100) OF tip_ex8;
+    v_aux_angajat tip_ex8;
+    v_lista_angajat tip_lista_angajat := tip_lista_angajat();
+    v_lista_aux_angajat tip_lista_angajat := tip_lista_angajat();
+    
+    v_sortat BOOLEAN;
+    v_deja_luat BOOLEAN;
+    
+    N_INVALID EXCEPTION;
+    N_PREA_MARE EXCEPTION;
+    
+    PRAGMA EXCEPTION_INIT(N_INVALID, -20001);
+    PRAGMA EXCEPTION_INIT(N_PREA_MARE, -20002);
+    
+    v_nr_angajati NUMBER(10) := 0;
+    
+BEGIN
+    SELECT COUNT(*) INTO v_nr_angajati
+    FROM angajat;
+    
+    IF v_nr_angajati = 0 THEN
+        RAISE NO_DATA_FOUND;
+    END IF;
+
+    IF N <= 0 THEN
+        RAISE N_INVALID;
+    END IF;
+    
+    IF v_nr_angajati < N THEN
+        RAISE N_PREA_MARE;
+    END IF;
+
+    --paznic
+    SELECT tip_ex8( 
+                    p.cod_angajat,
+                    a.nume,
+                    a.prenume,
+                    a.salariu,
+                    p.cod_zona_de_parcare,
+                    'paznic',
+                    l.cod_locatie,
+                    l.adresa
+                    )
+    BULK COLLECT INTO v_lista_aux_angajat
+    FROM paznic p LEFT JOIN angajat a ON (p.cod_angajat = a.cod_angajat)
+    LEFT JOIN zona_de_parcare z ON (p.cod_zona_de_parcare = z.cod_zona_de_parcare)
+    LEFT JOIN locatie l ON (z.cod_locatie = l.cod_locatie);
+    
+    FOR i IN v_lista_aux_angajat.FIRST..v_lista_aux_angajat.LAST
+    LOOP
+            v_deja_luat := FALSE;
+            
+            IF v_lista_angajat.COUNT > 0 THEN
+                FOR j IN v_lista_angajat.FIRST..v_lista_angajat.LAST
+                LOOP
+                    IF v_lista_aux_angajat(i).cod_angajat = v_lista_angajat(j).cod_angajat THEN
+                        v_deja_luat := TRUE;
+                    END IF;
+                END LOOP;
+            END IF;
+            
+            IF v_deja_luat = FALSE THEN
+                v_lista_angajat.EXTEND;
+                v_lista_angajat(v_lista_angajat.COUNT) := v_lista_aux_angajat(i);
+            END IF;
+    END LOOP;
+    --receptionist
+    SELECT tip_ex8( 
+                    r.cod_angajat,
+                    a.nume,
+                    a.prenume,
+                    a.salariu,
+                    r.cod_hotel,
+                    'receptionist',
+                    l.cod_locatie,
+                    l.adresa
+                    )
+    BULK COLLECT INTO v_lista_aux_angajat
+    FROM receptionist r LEFT JOIN angajat a ON (r.cod_angajat = a.cod_angajat)
+    LEFT JOIN hotel h ON (r.cod_hotel = h.cod_hotel)
+    LEFT JOIN locatie l ON (h.cod_locatie = l.cod_locatie);
+    
+    FOR i IN v_lista_aux_angajat.FIRST..v_lista_aux_angajat.LAST
+    LOOP
+            v_deja_luat := FALSE;
+            
+            IF v_lista_angajat.COUNT > 0 THEN
+                FOR j IN v_lista_angajat.FIRST..v_lista_angajat.LAST
+                LOOP
+                    IF v_lista_aux_angajat(i).cod_angajat = v_lista_angajat(j).cod_angajat THEN
+                        v_deja_luat := TRUE;
+                    END IF;
+                END LOOP;
+            END IF;
+            
+            IF v_deja_luat = FALSE THEN
+                v_lista_angajat.EXTEND;
+                v_lista_angajat(v_lista_angajat.COUNT) := v_lista_aux_angajat(i);
+            END IF;
+    END LOOP;
+    --administrator
+    SELECT tip_ex8( 
+                    ad.cod_angajat,
+                    a.nume,
+                    a.prenume,
+                    a.salariu,
+                    ad.cod_hotel,
+                    'administrator',
+                    l.cod_locatie,
+                    l.adresa
+                    )
+    BULK COLLECT INTO v_lista_aux_angajat
+    FROM administrator ad LEFT JOIN angajat a ON (ad.cod_angajat = a.cod_angajat)
+    LEFT JOIN hotel h ON (ad.cod_hotel = h.cod_hotel)
+    LEFT JOIN locatie l ON (h.cod_locatie = l.cod_locatie);
+    
+    FOR i IN v_lista_aux_angajat.FIRST..v_lista_aux_angajat.LAST
+    LOOP
+            v_deja_luat := FALSE;
+            
+            IF v_lista_angajat.COUNT > 0 THEN
+                FOR j IN v_lista_angajat.FIRST..v_lista_angajat.LAST
+                LOOP
+                    IF v_lista_aux_angajat(i).cod_angajat = v_lista_angajat(j).cod_angajat THEN
+                        v_deja_luat := TRUE;
+                    END IF;
+                END LOOP;
+            END IF;
+            
+            IF v_deja_luat = FALSE THEN
+                v_lista_angajat.EXTEND;
+                v_lista_angajat(v_lista_angajat.COUNT) := v_lista_aux_angajat(i);
+            END IF;
+    END LOOP;
+    --chelner
+    SELECT tip_ex8( 
+                    c.cod_angajat,
+                    a.nume,
+                    a.prenume,
+                    a.salariu,
+                    c.cod_restaurant,
+                    'chelner',
+                    l.cod_locatie,
+                    l.adresa
+                    )
+    BULK COLLECT INTO v_lista_aux_angajat
+    FROM chelner c LEFT JOIN angajat a ON (c.cod_angajat = a.cod_angajat)
+    LEFT JOIN restaurant r ON (c.cod_restaurant = r.cod_restaurant)
+    LEFT JOIN locatie l ON (r.cod_locatie = l.cod_locatie);
+    
+    FOR i IN v_lista_aux_angajat.FIRST..v_lista_aux_angajat.LAST
+    LOOP
+            v_deja_luat := FALSE;
+            
+            IF v_lista_angajat.COUNT > 0 THEN
+                FOR j IN v_lista_angajat.FIRST..v_lista_angajat.LAST
+                LOOP
+                    IF v_lista_aux_angajat(i).cod_angajat = v_lista_angajat(j).cod_angajat THEN
+                        v_deja_luat := TRUE;
+                    END IF;
+                END LOOP;
+            END IF;
+            
+            IF v_deja_luat = FALSE THEN
+                v_lista_angajat.EXTEND;
+                v_lista_angajat(v_lista_angajat.COUNT) := v_lista_aux_angajat(i);
+            END IF;
+    END LOOP;
+    --bucatar
+    SELECT tip_ex8( 
+                    b.cod_angajat,
+                    a.nume,
+                    a.prenume,
+                    a.salariu,
+                    b.cod_restaurant,
+                    'bucatar',
+                    l.cod_locatie,
+                    l.adresa
+                    )
+    BULK COLLECT INTO v_lista_aux_angajat
+    FROM bucatar b LEFT JOIN angajat a ON (b.cod_angajat = a.cod_angajat)
+    LEFT JOIN restaurant r ON (b.cod_restaurant = r.cod_restaurant)
+    LEFT JOIN locatie l ON (r.cod_locatie = l.cod_locatie);
+    
+    FOR i IN v_lista_aux_angajat.FIRST..v_lista_aux_angajat.LAST
+    LOOP
+            v_deja_luat := FALSE;
+            
+            IF v_lista_angajat.COUNT > 0 THEN
+                FOR j IN v_lista_angajat.FIRST..v_lista_angajat.LAST
+                LOOP
+                    IF v_lista_aux_angajat(i).cod_angajat = v_lista_angajat(j).cod_angajat THEN
+                        v_deja_luat := TRUE;
+                    END IF;
+                END LOOP;
+            END IF;
+            
+            IF v_deja_luat = FALSE THEN
+                v_lista_angajat.EXTEND;
+                v_lista_angajat(v_lista_angajat.COUNT) := v_lista_aux_angajat(i);
+            END IF;
+    END LOOP;
+    
+    --mai trebuie selectati exact o data angajatii care nu lucreaza pe niciun post din cele mentionate
+    --(paznic, receptionist, administrator, chelner, bucatar)
+    FOR i IN (SELECT cod_angajat, nume, prenume, salariu FROM angajat)
+    LOOP
+        v_deja_luat := FALSE;
+        
+        FOR j IN v_lista_angajat.FIRST..v_lista_angajat.LAST
+        LOOP
+            IF v_lista_angajat(j).cod_angajat = i.cod_angajat THEN
+                v_deja_luat := TRUE;
+            END IF;
+        END LOOP;
+        
+        IF v_deja_luat = FALSE THEN
+            v_lista_angajat.EXTEND;
+            v_lista_angajat(v_lista_angajat.COUNT) := tip_ex8(i.cod_angajat, i.nume, i.prenume, i.salariu, null, '', null, null);
+        END IF;
+        
+    END LOOP;
+    
+    v_sortat := FALSE;
+    
+    WHILE v_sortat = FALSE --BubbleSort, sortez dupa salariu lista tuturor angajatilor
+    LOOP
+        v_sortat := TRUE;
+        
+        FOR i IN 1..(v_lista_angajat.COUNT - 1)
+        LOOP
+            IF v_lista_angajat(i).salariu < v_lista_angajat(i + 1).salariu THEN
+                v_sortat := FALSE;
+                v_aux_angajat := v_lista_angajat(i);
+                v_lista_angajat(i) := v_lista_angajat(i + 1);
+                v_lista_angajat(i + 1) := v_aux_angajat;
+            END IF;
+        END LOOP;
+        
+    END LOOP;
+    
+    RETURN v_lista_angajat(N);
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Nu exista angajati in baza de date');
+        RETURN NULL;
+    WHEN N_INVALID THEN
+        DBMS_OUTPUT.PUT_LINE('Valoarea N data ca parametru functiei este un numar invalid (negativ sau 0)');
+        RETURN NULL;
+    WHEN N_PREA_MARE THEN
+        DBMS_OUTPUT.PUT_LINE('Valoarea N data ca parametru functiei este un numar mai mare decat numarul total de angajati');
+        RETURN NULL;
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Alte erori');
+        RETURN NULL;
+END ex8;
+/
+
+DECLARE
+    --v_n NUMBER(10) := &p_n;
+    v_rezultat tip_ex8;
+BEGIN
+    v_rezultat := ex8(-1);
+    DBMS_OUTPUT.PUT_LINE('Angajatul ' || v_rezultat.cod_angajat || ' ' || v_rezultat.nume || ' '
+                         || v_rezultat.prenume || ', avand salariul ' || v_rezultat.salariu || ', lucreaza la ' || v_rezultat.cod_munca
+                         || ', pe post de ' || v_rezultat.tip_munca || ', locatia muncii fiind ' || v_rezultat.cod_locatie || ' ' ||
+                         v_rezultat.adresa);
+                         
+    v_rezultat := ex8(0);
+    DBMS_OUTPUT.PUT_LINE('Angajatul ' || v_rezultat.cod_angajat || ' ' || v_rezultat.nume || ' '
+                         || v_rezultat.prenume || ', avand salariul ' || v_rezultat.salariu || ', lucreaza la ' || v_rezultat.cod_munca
+                         || ', pe post de ' || v_rezultat.tip_munca || ', locatia muncii fiind ' || v_rezultat.cod_locatie || ' ' ||
+                         v_rezultat.adresa);
+
+    v_rezultat := ex8(4);
+    DBMS_OUTPUT.PUT_LINE('Angajatul ' || v_rezultat.cod_angajat || ' ' || v_rezultat.nume || ' '
+                         || v_rezultat.prenume || ', avand salariul ' || v_rezultat.salariu || ', lucreaza la ' || v_rezultat.cod_munca
+                         || ', pe post de ' || v_rezultat.tip_munca || ', locatia muncii fiind ' || v_rezultat.cod_locatie || ' ' ||
+                         v_rezultat.adresa);
+    
+    v_rezultat := ex8(101);
+    DBMS_OUTPUT.PUT_LINE('Angajatul ' || v_rezultat.cod_angajat || ' ' || v_rezultat.nume || ' '
+                         || v_rezultat.prenume || ', avand salariul ' || v_rezultat.salariu || ', lucreaza la ' || v_rezultat.cod_munca
+                         || ', pe post de ' || v_rezultat.tip_munca || ', locatia muncii fiind ' || v_rezultat.cod_locatie || ' ' ||
+                         v_rezultat.adresa);
+END;
+/
+
+ROLLBACK;
+COMMIT;
+
+DELETE FROM paznic;
+DELETE FROM receptionist;
+DELETE FROM administrator;
+DELETE FROM chelner;
+DELETE FROM bucatar;
+
+DELETE FROM angajat;
+
+
+/*
+Exercitiul 9
+Cerinta:
+Pentru o denumire a unui restaurant dat, sa se afiseze codul restaurantului, numarul de stele al acestuia, adresa sa,
+toate felurile de mancare distincte ce pot fi servite in acest restaurant (cod si denumire fel de mancare),
+toti furnizorii ce aprovizioneaza acest restaurant (cod furnizor),
+cat si hotelul de care apartine restaurantul (poate sa fie null) (cod hotel si denumire hotel).
+De asemenea, pentru fiecare furnizor al restaurantului sa se stearga toate colaborarile realizate intre furnizorul respectiv si restaurantul cu denumirea data.
+Daca denumirea restaurantului nu apare in baza de date sau apare de mai multe ori, atunci se vor declansa exceptii.
+Daca restaurantul nu ofera niciun fel de mancare, atunci se va declansa o exceptie definita de utilizator.
+Daca restaurantul nu are incheiat niciun contract cu niciun furnizor, atunci se va declansa o exceptie definita de utilizator.
+*/
+
+SET SERVEROUTPUT ON
+SET VERIFY OFF
+
+INSERT INTO RESTAURANT(cod_restaurant, cod_hotel, cod_locatie, denumire, numar_stele, an_infiintare)
+VALUES(SECVENTA_RESTAURANT.NEXTVAL, 4, 7, 'Madrid', NULL, 1993); -- restaurantul 'Madrid' va declansa exceptia de TOO_MANY_ROWS
+INSERT INTO RESTAURANT(cod_restaurant, cod_hotel, cod_locatie, denumire, numar_stele, an_infiintare)
+VALUES(SECVENTA_RESTAURANT.NEXTVAL, 4, 7, 'Londra', NULL, 1973); -- restaurantul 'Londra' va declansa exceptia NICIUN_FEL_DE_MANCARE
+
+CREATE OR REPLACE PROCEDURE ex9(denumireRestaurant restaurant.denumire%TYPE) IS
+    TYPE tip_info_restaurant IS RECORD
+    (
+        cod_restaurant restaurant.cod_restaurant%TYPE,
+        numar_stele restaurant.numar_stele%TYPE,
+        adresa locatie.adresa%TYPE,
+        cod_fel_de_mancare fel_de_mancare.cod_fel_de_mancare%TYPE,
+        denumire_fel_de_mancare fel_de_mancare.denumire%TYPE,
+        cod_furnizor furnizor.cod_furnizor%TYPE,
+        cod_hotel hotel.cod_hotel%TYPE,
+        denumire_hotel hotel.denumire%TYPE
+    );
+    TYPE tip_lista_info_restaurant IS VARRAY(1000) OF tip_info_restaurant;
+    v_info_restaurant tip_info_restaurant;
+    v_lista_info_restaurant tip_lista_info_restaurant := tip_lista_info_restaurant();
+    
+    v_cod_restaurant restaurant.cod_restaurant%TYPE;
+    
+    TYPE tip_info_fel_de_mancare IS RECORD
+    (
+        cod_fel_de_mancare fel_de_mancare.cod_fel_de_mancare%TYPE,
+        denumire fel_de_mancare.denumire%TYPE
+    );
+    
+    TYPE tip_tabel_feluri_de_mancare IS TABLE OF tip_info_fel_de_mancare;
+    TYPE tip_tabel_furnizori IS TABLE OF furnizor.cod_furnizor%TYPE;
+    
+    tabel_feluri_de_mancare tip_tabel_feluri_de_mancare := tip_tabel_feluri_de_mancare();
+    tabel_furnizori tip_tabel_furnizori := tip_tabel_furnizori();
+    
+    v_deja_exista BOOLEAN := FALSE;
+    
+    CURSOR c_info_restaurant(codRestaurant restaurant.cod_restaurant%TYPE)
+    IS
+    SELECT r.cod_restaurant, r.numar_stele, l.adresa, m.cod_fel_de_mancare, m.denumire, f.cod_furnizor, h.cod_hotel, h.denumire
+    FROM restaurant r LEFT JOIN locatie l ON (r.cod_locatie = l.cod_locatie)
+    LEFT JOIN restaurant_serveste_fel_de_mancare rm ON (r.cod_restaurant = rm.cod_restaurant)
+    LEFT JOIN fel_de_mancare m ON (rm.cod_fel_de_mancare = m.cod_fel_de_mancare)
+    LEFT JOIN hotel h ON (r.cod_hotel = h.cod_hotel)
+    LEFT JOIN furnizor_semneaza_cu_restaurant_mai_multe_contracte frc ON (r.cod_restaurant = frc.cod_restaurant)
+    LEFT JOIN furnizor f ON (frc.cod_furnizor = f.cod_furnizor)
+    WHERE r.cod_restaurant = codRestaurant;
+    
+    NICIUN_FEL_DE_MANCARE EXCEPTION;
+    NICIUN_FURNIZOR EXCEPTION;
+    
+    PRAGMA EXCEPTION_INIT(NICIUN_FEL_DE_MANCARE, -20001);
+    PRAGMA EXCEPTION_INIT(NICIUN_FURNIZOR, -20002);
+    
+BEGIN
+    SELECT cod_restaurant INTO v_cod_restaurant --acest query va declansa exceptiile NO_DATA_FOUND sau TOO_MANY_ROWS
+    FROM restaurant WHERE INITCAP(denumire) = INITCAP(denumireRestaurant);
+    
+    OPEN c_info_restaurant(v_cod_restaurant);
+    
+    FETCH c_info_restaurant INTO v_info_restaurant;
+    
+    WHILE c_info_restaurant%FOUND
+    LOOP
+        v_lista_info_restaurant.EXTEND;
+        v_lista_info_restaurant(v_lista_info_restaurant.COUNT) := v_info_restaurant;
+        FETCH c_info_restaurant INTO v_info_restaurant;
+    END LOOP;
+    
+    CLOSE c_info_restaurant;
+    
+    
+    FOR i IN v_lista_info_restaurant.FIRST..v_lista_info_restaurant.LAST
+    LOOP
+        IF v_lista_info_restaurant(i).cod_fel_de_mancare IS NOT NULL THEN
+        
+            v_deja_exista := FALSE;
+            
+            IF tabel_feluri_de_mancare.COUNT > 0 THEN
+                FOR j IN tabel_feluri_de_mancare.FIRST..tabel_feluri_de_mancare.LAST
+                LOOP
+                    IF tabel_feluri_de_mancare(j).cod_fel_de_mancare = v_lista_info_restaurant(i).cod_fel_de_mancare THEN
+                        v_deja_exista := TRUE;
+                    END IF;
+                END LOOP;
+            END IF;
+            
+            IF v_deja_exista = FALSE THEN
+                tabel_feluri_de_mancare.EXTEND;
+                tabel_feluri_de_mancare(tabel_feluri_de_mancare.LAST) := tip_info_fel_de_mancare(v_lista_info_restaurant(i).cod_fel_de_mancare, v_lista_info_restaurant(i).denumire_fel_de_mancare);
+            END IF;
+        END IF;
+        
+        IF v_lista_info_restaurant(i).cod_furnizor IS NOT NULL THEN
+            IF v_lista_info_restaurant(i).cod_furnizor NOT MEMBER OF tabel_furnizori THEN
+                tabel_furnizori.EXTEND;
+                tabel_furnizori(tabel_furnizori.LAST) := v_lista_info_restaurant(i).cod_furnizor;
+            END IF;
+        END IF;
+    END LOOP;
+    
+    DBMS_OUTPUT.PUT_LINE('Restaurantul ' || v_lista_info_restaurant(1).cod_restaurant || ' ' || denumireRestaurant
+                         || ' cu numarul de stele ' || v_lista_info_restaurant(1).numar_stele
+                         || ' aflat la adresa ' || v_lista_info_restaurant(1).adresa || ', ce apartine de hotelul '
+                         || v_lista_info_restaurant(1).cod_hotel || ' ' || v_lista_info_restaurant(1).denumire_hotel
+                         || ', serveste urmatoarele feluri de mancare: ');
+                         
+                   
+    IF tabel_feluri_de_mancare.COUNT > 0 THEN
+        FOR i IN tabel_feluri_de_mancare.FIRST..tabel_feluri_de_mancare.LAST
+        LOOP
+            DBMS_OUTPUT.PUT_LINE(tabel_feluri_de_mancare(i).cod_fel_de_mancare || ' ' || tabel_feluri_de_mancare(i).denumire);
+        END LOOP;
+    ELSE
+        RAISE NICIUN_FEL_DE_MANCARE;
+    END IF;
+    
+    DBMS_OUTPUT.PUT_LINE('Si are contracte semnate cu urmatorii furnizori: ');
+    
+    IF tabel_furnizori.COUNT > 0 THEN
+        FOR i IN tabel_furnizori.FIRST..tabel_furnizori.LAST
+        LOOP
+            DBMS_OUTPUT.PUT_LINE(tabel_furnizori(i));
+        END LOOP;
+    ELSE
+        RAISE NICIUN_FURNIZOR;
+    END IF;
+    
+    FORALL i IN tabel_furnizori.FIRST..tabel_furnizori.LAST
+        DELETE FROM furnizor_semneaza_cu_restaurant_mai_multe_contracte frc
+        WHERE frc.cod_furnizor = tabel_furnizori(i) AND frc.cod_restaurant = v_cod_restaurant;
+    
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Restaurantul cu denumirea ' || denumireRestaurant || ' nu apare in baza de date');
+    WHEN TOO_MANY_ROWS THEN
+        DBMS_OUTPUT.PUT_LINE('Restaurantul cu denumirea ' || denumireRestaurant || ' apare de mai multe ori in baza de date');
+    WHEN NICIUN_FEL_DE_MANCARE THEN
+        DBMS_OUTPUT.PUT_LINE('Restaurantul cu denumirea ' || denumireRestaurant || ' nu ofera niciun fel de mancare');
+    WHEN NICIUN_FURNIZOR THEN
+        DBMS_OUTPUT.PUT_LINE('Restaurantul cu denumirea ' || denumireRestaurant || ' nu are contract incheiat cu niciun furnizor');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Alte erori');
+END ex9;
+/
+
+DECLARE
+    --v_denumire_restaurant restaurant.denumire%TYPE := Initcap('&p_denumire_restaurant');
+BEGIN
+    ex9('Londra'); --nu are niciun fel de mancare
+    ex9('Madrid'); --too_many_rows
+    ex9('Paris'); --nu are niciun fel de mancare
+    ex9('Napoli'); --nu are furnizori
+    ex9('Amsterdam'); --nu exista
+    ex9('Roma'); --ok
+END;
+/
+
+ROLLBACK;
+COMMIT;
+
+SELECT * FROM restaurant;
+SELECT * FROM furnizor_semneaza_cu_restaurant_mai_multe_contracte;
+SELECT * FROM restaurant_serveste_fel_de_mancare;
+
+ALTER TRIGGER ex10 DISABLE;
+ALTER TRIGGER ex10 ENABLE;
+
+
+/*
+Exercitiul 10
+Cerinta:
+Sa se adauge un declansator la nivel de comanda, care va permite introducerea/stergerea/modificarea
+unor parteneriate intre furnizori si restaurante prin intermediul unor contracte
+doar in intervalul orar 9:00 - 15:00.
+In cazul in care se incearca introducerea/stergerea/modificarea in afara intervalului
+specificat, atunci se vor declansa exceptii definite de utilizator.
+*/
+
+SET SERVEROUTPUT ON
+SET VERIFY OFF
+
+CREATE OR REPLACE TRIGGER ex10
+    BEFORE INSERT OR DELETE OR UPDATE ON furnizor_semneaza_cu_restaurant_mai_multe_contracte
+DECLARE
+    INSERARE_NEPERMISA EXCEPTION;
+    STERGERE_NEPERMISA EXCEPTION;
+    MODIFICARE_NEPERMISA EXCEPTION;
+    
+    PRAGMA EXCEPTION_INIT(INSERARE_NEPERMISA, -20001);
+    PRAGMA EXCEPTION_INIT(STERGERE_NEPERMISA, -20002);
+    PRAGMA EXCEPTION_INIT(MODIFICARE_NEPERMISA, -20003);
+    
+    v_ora NUMBER(10);
+BEGIN
+    SELECT TO_NUMBER(TO_CHAR(SYSDATE, 'HH24')) INTO v_ora FROM DUAL;
+    
+    IF v_ora < 9 OR 15 <= v_ora THEN
+        IF INSERTING THEN
+            DBMS_OUTPUT.PUT_LINE('Inserarea nepermisa in afara intervalului orar');
+            RAISE INSERARE_NEPERMISA;
+        ELSIF DELETING THEN
+            DBMS_OUTPUT.PUT_LINE('Stergerea nepermisa in afara intervalului orar');
+            RAISE STERGERE_NEPERMISA;
+        ELSE -- UPDATING
+            DBMS_OUTPUT.PUT_LINE('Modificarea nepermisa in afara intervalului orar');
+            RAISE MODIFICARE_NEPERMISA;
+        END IF;
+    END IF;
+END ex10;
+/
+
+DESC furnizor_semneaza_cu_restaurant_mai_multe_contracte;
+
+INSERT INTO furnizor_semneaza_cu_restaurant_mai_multe_contracte(cod_restaurant, cod_furnizor, cod_contract)
+VALUES(6, 6, 5);
+
+DELETE FROM furnizor_semneaza_cu_restaurant_mai_multe_contracte
+WHERE cod_restaurant = 1;
+
+UPDATE furnizor_semneaza_cu_restaurant_mai_multe_contracte
+SET cod_contract = 6
+WHERE cod_restaurant = 4 AND cod_furnizor = 4;
+
+SELECT * FROM furnizor_semneaza_cu_restaurant_mai_multe_contracte;
+
+ROLLBACK;
+COMMIT;
+
+
+/*
+Exercitiul 11
+Cerinta:
+Sa se implementeze un declansator la nivel de linie asupra tabelului client_rezerva_camera
+care se va activa pentru operatiile de inserare/modificare asupra datelor. Declansatorul nu va permite ca un hotel
+sa gazduiasca mai mult de 5 persoane in acelasi an. (Apare problema de mutating table daca nu este implementat folosind un declansator compus.)
+*/
+
+SET SERVEROUTPUT ON
+SET VERIFY OFF
+
+DESC client_rezerva_camera;
+DESC hotel;
+
+DROP TRIGGER ex11;
+
+CREATE OR REPLACE TRIGGER ex11
+FOR INSERT OR UPDATE ON client_rezerva_camera
+COMPOUND TRIGGER
+    TYPE tip_tabel1 IS TABLE OF NUMBER(10) INDEX BY BINARY_INTEGER;
+    TYPE tip_tabel2 IS TABLE OF tip_tabel1 INDEX BY BINARY_INTEGER;
+    v_frecventa_ani tip_tabel2 := tip_tabel2();
+BEFORE STATEMENT IS
+BEGIN
+    FOR x IN (SELECT cod_hotel FROM hotel)
+    LOOP
+        v_frecventa_ani(x.cod_hotel) := tip_tabel1();
+        FOR y IN (SELECT EXTRACT(YEAR FROM crc.data_inceput) an1, EXTRACT(YEAR FROM crc.data_sfarsit) an2 FROM client_rezerva_camera crc WHERE crc.cod_hotel = x.cod_hotel)
+        LOOP
+            FOR an_crt IN y.an1..y.an2
+            LOOP
+                IF v_frecventa_ani(x.cod_hotel).EXISTS(an_crt) THEN
+                    v_frecventa_ani(x.cod_hotel)(an_crt) := v_frecventa_ani(x.cod_hotel)(an_crt) + 1;
+                ELSE
+                    v_frecventa_ani(x.cod_hotel)(an_crt) := 1;
+                END IF;
+            END LOOP;
+        END LOOP;
+    END LOOP;
+END BEFORE STATEMENT;
+BEFORE EACH ROW IS
+    v_an1 NUMBER(10) := 0;
+    v_an2 NUMBER(10) := 0;
+    v_numar_maxim_per_an NUMBER(10) := 5;
+    v_maxim_curent NUMBER(10) := 0;
+BEGIN
+    IF INSERTING THEN
+        v_an1 := EXTRACT(YEAR FROM :NEW.data_inceput);
+        v_an2 := EXTRACT(YEAR FROM :NEW.data_sfarsit);
+        
+        FOR an_crt IN v_an1..v_an2
+        LOOP
+            IF v_frecventa_ani(:NEW.cod_hotel).EXISTS(an_crt) THEN
+                v_frecventa_ani(:NEW.cod_hotel)(an_crt) := v_frecventa_ani(:NEW.cod_hotel)(an_crt) + 1;
+            ELSE
+                v_frecventa_ani(:NEW.cod_hotel)(an_crt) := 1;
+            END IF;
+        END LOOP; 
+    ELSE -- UPDATING
+        v_an1 := EXTRACT(YEAR FROM :OLD.data_inceput);
+        v_an2 := EXTRACT(YEAR FROM :OLD.data_sfarsit);
+        
+        FOR an_crt IN v_an1..v_an2
+        LOOP
+            v_frecventa_ani(:OLD.cod_hotel)(an_crt) := v_frecventa_ani(:OLD.cod_hotel)(an_crt) - 1;
+        END LOOP;
+        
+        v_an1 := EXTRACT(YEAR FROM :NEW.data_inceput);
+        v_an2 := EXTRACT(YEAR FROM :NEW.data_sfarsit);
+        
+        FOR an_crt IN v_an1..v_an2
+        LOOP
+            IF v_frecventa_ani(:NEW.cod_hotel).EXISTS(an_crt) THEN
+                v_frecventa_ani(:NEW.cod_hotel)(an_crt) := v_frecventa_ani(:NEW.cod_hotel)(an_crt) + 1;
+            ELSE
+                v_frecventa_ani(:NEW.cod_hotel)(an_crt) := 1;
+            END IF;
+        END LOOP; 
+    END IF;
+    
+    FOR x IN (SELECT cod_hotel FROM hotel)
+    LOOP
+        IF v_frecventa_ani(x.cod_hotel).COUNT > 0 THEN
+            FOR y IN v_frecventa_ani(x.cod_hotel).FIRST..v_frecventa_ani(x.cod_hotel).LAST
+            LOOP
+                IF v_maxim_curent < v_frecventa_ani(x.cod_hotel)(y) THEN
+                    v_maxim_curent := v_frecventa_ani(x.cod_hotel)(y);
+                END IF;
+            END LOOP;
+        END IF;
+    END LOOP;
+    
+    IF v_maxim_curent > v_numar_maxim_per_an THEN
+        RAISE_APPLICATION_ERROR(-20001, 'S-a depasit numarul maxim de clienti (' || v_numar_maxim_per_an || ') per an pentru un hotel');
+    END IF;
+END BEFORE EACH ROW;
+END ex11;
+/
+
+SELECT * FROM client_rezerva_camera;
+SELECT * FROM hotel;
+
+UPDATE client_rezerva_camera --acest update va merge
+SET
+data_inceput = TO_DATE('01-01-2023', 'dd-mm-yyyy'),
+data_sfarsit = TO_DATE('31-12-2023', 'dd-mm-yyyy')
+WHERE cod_client = 1 AND cod_hotel = 1 AND cod_camera = 1;
+
+UPDATE client_rezerva_camera --va declansa exceptia din trigger
+SET
+cod_hotel = 1;
+
+INSERT INTO client_rezerva_camera(cod_client, cod_camera, cod_hotel, data_inceput, data_sfarsit) --va merge
+VALUES(8, 2, 1, TO_DATE('01-01-2022', 'dd-mm-yyyy'), TO_DATE('31-12-2022', 'dd-mm-yyyy'));
+
+INSERT INTO client_rezerva_camera(cod_client, cod_camera, cod_hotel, data_inceput, data_sfarsit) --nu va merge
+VALUES(7, 2, 1, TO_DATE('01-01-2023', 'dd-mm-yyyy'), TO_DATE('31-12-2023', 'dd-mm-yyyy'));
+
+ROLLBACK;
+COMMIT;
+
+
+/*
+Exercitiul 12
+Cerinta:
+Sa se creeze un tabel de logs, care va monitoriza modificarile realizate de utilizatori asupra bazei de date. (Operatii de create table, drop table, alter table)
+Tabelul de logs va memora numele utilizatorului care a efectuat comanda, tipul comenzii, tabelul asupra careia a fost aplicata si data cand s-a aplicat.
+Se va implementa un trigger asupra bazei de date care va insera in tabelul de logs de fiecare data cand o asemenea comanda va fi executata.
+*/
+
+SET SERVEROUTPUT ON
+SET VERIFY OFF
+
+DROP TRIGGER ex12;
+
+DROP SEQUENCE secventa_logs;
+
+CREATE SEQUENCE secventa_logs
+INCREMENT BY 1
+START WITH 1
+MAXVALUE 9999999999
+NOCYCLE;
+
+DROP TABLE logs;
+
+CREATE TABLE logs
+(
+    cod_logs NUMBER(10) PRIMARY KEY,
+    nume_utilizator VARCHAR2(50),
+    tip_comanda VARCHAR2(50),
+    nume_tabel VARCHAR2(50),
+    data DATE
+);
+
+CREATE OR REPLACE TRIGGER ex12
+AFTER CREATE OR DROP OR ALTER ON SCHEMA
+DECLARE
+    v_nume_utilizator VARCHAR2(50);
+    v_tip_comanda VARCHAR2(50);
+    v_nume_tabel VARCHAR2(50);
+    v_data DATE;
+BEGIN
+    SELECT SYS.LOGIN_USER INTO v_nume_utilizator FROM DUAL;
+    
+    v_tip_comanda := SYS.SYSEVENT;
+    
+    v_nume_tabel := SYS.DICTIONARY_OBJ_NAME;
+    
+    SELECT SYSDATE INTO v_data FROM DUAL;
+    
+    INSERT INTO logs(cod_logs, nume_utilizator, tip_comanda, nume_tabel, data)
+    VALUES(secventa_logs.NEXTVAL, v_nume_utilizator, v_tip_comanda, v_nume_tabel, v_data);
+    
+END ex12;
+/
+
+SELECT * FROM logs;
+
+CREATE TABLE test
+(
+    nr NUMBER(10)
+);
+
+INSERT INTO test(nr)
+VALUES (1);
+
+ALTER TABLE test
+ADD nr2 NUMBER(10);
+
+ALTER TABLE test
+DROP COLUMN nr2;
+
+DROP TABLE test;
+
+CREATE TABLE test2
+(
+    nr NUMBER(10)
+);
+
+DROP TABLE test2;
+
+ROLLBACK;
+COMMIT;
+
+
+/*
+Exercitiul 13
+Pachet
+*/
+
+--------------------------------------------------
+
+
+SET SERVEROUTPUT ON
+SET VERIFY OFF
+
+CREATE OR REPLACE PACKAGE ex13 IS
+    TYPE tip_ex8 IS RECORD
+    (
+        cod_angajat NUMBER(10),
+        nume VARCHAR2(50),
+        prenume VARCHAR2(50),
+        salariu NUMBER(10),
+        cod_munca NUMBER(10),
+        tip_munca VARCHAR2(50),
+        cod_locatie NUMBER(10),
+        adresa VARCHAR2(50)
+    );
+
+    PROCEDURE ex6;
+    PROCEDURE ex7;
+    
+    FUNCTION ex8(N NUMBER) RETURN ex13.tip_ex8;
+    PROCEDURE ex9(denumireRestaurant restaurant.denumire%TYPE);
+END ex13;
+/
+
+CREATE OR REPLACE PACKAGE BODY ex13 IS
+    PROCEDURE ex6 IS
+        TYPE tip_tabel_camera IS TABLE OF camera.cod_camera%TYPE;
+        TYPE tip_tabel_zona_de_parcare IS TABLE OF zona_de_parcare.cod_zona_de_parcare%TYPE INDEX BY BINARY_INTEGER;
+        TYPE tip_info_hotel IS RECORD
+        (
+            cod_hotel hotel.cod_hotel%TYPE,
+            denumire hotel.denumire%TYPE,
+            tabel_camera tip_tabel_camera,
+            tabel_zona_de_parcare tip_tabel_zona_de_parcare
+        );
+        TYPE tip_lista_hotel IS VARRAY(100) OF tip_info_hotel;
+        tabel_camera tip_tabel_camera;
+        tabel_zona_de_parcare tip_tabel_zona_de_parcare;
+        lista_hotel tip_lista_hotel := tip_lista_hotel();
+        TYPE tip_contor IS RECORD
+        (
+            cod_hotel hotel.cod_hotel%TYPE,
+            denumire hotel.denumire%TYPE
+        );
+        v_contor tip_contor;
+    BEGIN
+        lista_hotel.DELETE;
+        FOR v_contor IN (SELECT cod_hotel, denumire FROM hotel)
+        LOOP
+            SELECT cod_camera BULK COLLECT INTO tabel_camera
+            FROM camera WHERE camera.cod_hotel = v_contor.cod_hotel;
+            
+            SELECT cod_zona_de_parcare BULK COLLECT INTO tabel_zona_de_parcare
+            FROM zona_de_parcare WHERE zona_de_parcare.cod_hotel = v_contor.cod_hotel;
+            
+            lista_hotel.EXTEND;
+            lista_hotel(lista_hotel.LAST) := tip_info_hotel(v_contor.cod_hotel, v_contor.denumire, tabel_camera, tabel_zona_de_parcare);
+        END LOOP;
+        
+        FOR i IN lista_hotel.FIRST..lista_hotel.LAST
+        LOOP
+            DBMS_OUTPUT.PUT_LINE('Hotelul ' || lista_hotel(i).cod_hotel || ', cu denumirea ' || lista_hotel(i).denumire || ', are urmatoarele camere si zone de parcare:');
+            
+            DBMS_OUTPUT.PUT_LINE('Camere:');
+            IF lista_hotel(i).tabel_camera.COUNT = 0 THEN
+                DBMS_OUTPUT.PUT_LINE('nu exista camere');
+            ELSE
+                FOR j IN lista_hotel(i).tabel_camera.FIRST..lista_hotel(i).tabel_camera.LAST
+                LOOP
+                    DBMS_OUTPUT.PUT_LINE('camera ' || j);
+                END LOOP;
+            END IF;
+            
+            DBMS_OUTPUT.PUT_LINE('Zone de parcare:');
+            IF lista_hotel(i).tabel_zona_de_parcare.COUNT = 0 THEN
+                DBMS_OUTPUT.PUT_LINE('nu exista zone de parcare');
+            ELSE
+                FOR j IN lista_hotel(i).tabel_zona_de_parcare.FIRST..lista_hotel(i).tabel_zona_de_parcare.LAST
+                LOOP
+                    DBMS_OUTPUT.PUT_LINE('zona de parcare ' || j);
+                END LOOP;
+            END IF;
+            
+        END LOOP;
+    END ex6;
+    
+    PROCEDURE ex7 IS
+        CURSOR c_locatie IS
+        SELECT l.cod_locatie, l.adresa,
+        CURSOR(SELECT COUNT(*) FROM restaurant r WHERE r.cod_locatie = l.cod_locatie)
+        FROM locatie l;
+        
+        CURSOR c_fel_de_mancare(codLocatie locatie.cod_locatie%TYPE) IS
+        SELECT DISTINCT m.cod_fel_de_mancare, m.denumire
+        FROM fel_de_mancare m JOIN restaurant_serveste_fel_de_mancare rm ON
+        m.cod_fel_de_mancare = rm.cod_fel_de_mancare
+        JOIN restaurant r ON rm.cod_restaurant = r.cod_restaurant
+        WHERE r.cod_locatie = codLocatie;
+        
+        v_cod_locatie locatie.cod_locatie%TYPE;
+        v_adresa locatie.adresa%TYPE;
+        
+        TYPE tip_ref_cursor IS REF CURSOR;
+        v_ref_cursor tip_ref_cursor;
+        
+        v_numar_restaurante NUMBER(10);
+        
+        v_cod_fel_de_mancare fel_de_mancare.cod_fel_de_mancare%TYPE;
+        v_denumire fel_de_mancare.denumire%TYPE;
+        
+        v_numar_feluri_de_mancare NUMBER(10);
+    BEGIN
+        OPEN c_locatie;
+        LOOP
+            FETCH c_locatie INTO v_cod_locatie, v_adresa, v_ref_cursor;
+            
+            EXIT WHEN c_locatie%NOTFOUND;
+            
+            v_numar_restaurante := 0;
+            
+            LOOP
+                FETCH v_ref_cursor INTO v_numar_restaurante;
+                
+                EXIT WHEN v_ref_cursor%NOTFOUND;
+            END LOOP;
+            
+            IF v_numar_restaurante > 0 THEN
+                DBMS_OUTPUT.PUT_LINE('In locatia ' || v_cod_locatie || ', cu adresa ' || v_adresa || ', se pot servi urmatoarele feluri de mancare');
+                
+                v_numar_feluri_de_mancare := 0;
+                
+                OPEN c_fel_de_mancare(v_cod_locatie);
+                LOOP
+                    FETCH c_fel_de_mancare INTO v_cod_fel_de_mancare, v_denumire;
+                    EXIT WHEN c_fel_de_mancare%NOTFOUND;
+                    
+                    v_numar_feluri_de_mancare := v_numar_feluri_de_mancare + 1;
+                    
+                    DBMS_OUTPUT.PUT_LINE(v_cod_fel_de_mancare || ' ' || v_denumire);
+                END LOOP;
+                CLOSE c_fel_de_mancare;
+                
+                DBMS_OUTPUT.PUT_LINE('Numarul de feluri de mancare distincte este ' || v_numar_feluri_de_mancare);
+                
+            END IF;
+            
+        END LOOP;  
+        CLOSE c_locatie;
+    END ex7;
+    
+    FUNCTION ex8(N NUMBER) RETURN ex13.tip_ex8 IS
+        TYPE tip_lista_angajat IS VARRAY(100) OF ex13.tip_ex8;
+        v_aux_angajat ex13.tip_ex8;
+        v_lista_angajat tip_lista_angajat := tip_lista_angajat();
+        v_lista_aux_angajat tip_lista_angajat := tip_lista_angajat();
+        
+        v_sortat BOOLEAN;
+        v_deja_luat BOOLEAN;
+        
+        N_INVALID EXCEPTION;
+        N_PREA_MARE EXCEPTION;
+        
+        PRAGMA EXCEPTION_INIT(N_INVALID, -20001);
+        PRAGMA EXCEPTION_INIT(N_PREA_MARE, -20002);
+        
+        v_nr_angajati NUMBER(10) := 0;
+        
+    BEGIN
+        SELECT COUNT(*) INTO v_nr_angajati
+        FROM angajat;
+        
+        IF v_nr_angajati = 0 THEN
+            RAISE NO_DATA_FOUND;
+        END IF;
+    
+        IF N <= 0 THEN
+            RAISE N_INVALID;
+        END IF;
+        
+        IF v_nr_angajati < N THEN
+            RAISE N_PREA_MARE;
+        END IF;
+    
+        --paznic
+        SELECT 
+                        p.cod_angajat,
+                        a.nume,
+                        a.prenume,
+                        a.salariu,
+                        p.cod_zona_de_parcare,
+                        'paznic',
+                        l.cod_locatie,
+                        l.adresa
+        BULK COLLECT INTO v_lista_aux_angajat
+        FROM paznic p LEFT JOIN angajat a ON (p.cod_angajat = a.cod_angajat)
+        LEFT JOIN zona_de_parcare z ON (p.cod_zona_de_parcare = z.cod_zona_de_parcare)
+        LEFT JOIN locatie l ON (z.cod_locatie = l.cod_locatie);
+        
+        FOR i IN v_lista_aux_angajat.FIRST..v_lista_aux_angajat.LAST
+        LOOP
+                v_deja_luat := FALSE;
+                
+                IF v_lista_angajat.COUNT > 0 THEN
+                    FOR j IN v_lista_angajat.FIRST..v_lista_angajat.LAST
+                    LOOP
+                        IF v_lista_aux_angajat(i).cod_angajat = v_lista_angajat(j).cod_angajat THEN
+                            v_deja_luat := TRUE;
+                        END IF;
+                    END LOOP;
+                END IF;
+                
+                IF v_deja_luat = FALSE THEN
+                    v_lista_angajat.EXTEND;
+                    v_lista_angajat(v_lista_angajat.COUNT) := v_lista_aux_angajat(i);
+                END IF;
+        END LOOP;
+        --receptionist
+        SELECT
+                        r.cod_angajat,
+                        a.nume,
+                        a.prenume,
+                        a.salariu,
+                        r.cod_hotel,
+                        'receptionist',
+                        l.cod_locatie,
+                        l.adresa
+        BULK COLLECT INTO v_lista_aux_angajat
+        FROM receptionist r LEFT JOIN angajat a ON (r.cod_angajat = a.cod_angajat)
+        LEFT JOIN hotel h ON (r.cod_hotel = h.cod_hotel)
+        LEFT JOIN locatie l ON (h.cod_locatie = l.cod_locatie);
+        
+        FOR i IN v_lista_aux_angajat.FIRST..v_lista_aux_angajat.LAST
+        LOOP
+                v_deja_luat := FALSE;
+                
+                IF v_lista_angajat.COUNT > 0 THEN
+                    FOR j IN v_lista_angajat.FIRST..v_lista_angajat.LAST
+                    LOOP
+                        IF v_lista_aux_angajat(i).cod_angajat = v_lista_angajat(j).cod_angajat THEN
+                            v_deja_luat := TRUE;
+                        END IF;
+                    END LOOP;
+                END IF;
+                
+                IF v_deja_luat = FALSE THEN
+                    v_lista_angajat.EXTEND;
+                    v_lista_angajat(v_lista_angajat.COUNT) := v_lista_aux_angajat(i);
+                END IF;
+        END LOOP;
+        --administrator
+        SELECT
+                        ad.cod_angajat,
+                        a.nume,
+                        a.prenume,
+                        a.salariu,
+                        ad.cod_hotel,
+                        'administrator',
+                        l.cod_locatie,
+                        l.adresa
+        BULK COLLECT INTO v_lista_aux_angajat
+        FROM administrator ad LEFT JOIN angajat a ON (ad.cod_angajat = a.cod_angajat)
+        LEFT JOIN hotel h ON (ad.cod_hotel = h.cod_hotel)
+        LEFT JOIN locatie l ON (h.cod_locatie = l.cod_locatie);
+        
+        FOR i IN v_lista_aux_angajat.FIRST..v_lista_aux_angajat.LAST
+        LOOP
+                v_deja_luat := FALSE;
+                
+                IF v_lista_angajat.COUNT > 0 THEN
+                    FOR j IN v_lista_angajat.FIRST..v_lista_angajat.LAST
+                    LOOP
+                        IF v_lista_aux_angajat(i).cod_angajat = v_lista_angajat(j).cod_angajat THEN
+                            v_deja_luat := TRUE;
+                        END IF;
+                    END LOOP;
+                END IF;
+                
+                IF v_deja_luat = FALSE THEN
+                    v_lista_angajat.EXTEND;
+                    v_lista_angajat(v_lista_angajat.COUNT) := v_lista_aux_angajat(i);
+                END IF;
+        END LOOP;
+        --chelner
+        SELECT
+                        c.cod_angajat,
+                        a.nume,
+                        a.prenume,
+                        a.salariu,
+                        c.cod_restaurant,
+                        'chelner',
+                        l.cod_locatie,
+                        l.adresa
+        BULK COLLECT INTO v_lista_aux_angajat
+        FROM chelner c LEFT JOIN angajat a ON (c.cod_angajat = a.cod_angajat)
+        LEFT JOIN restaurant r ON (c.cod_restaurant = r.cod_restaurant)
+        LEFT JOIN locatie l ON (r.cod_locatie = l.cod_locatie);
+        
+        FOR i IN v_lista_aux_angajat.FIRST..v_lista_aux_angajat.LAST
+        LOOP
+                v_deja_luat := FALSE;
+                
+                IF v_lista_angajat.COUNT > 0 THEN
+                    FOR j IN v_lista_angajat.FIRST..v_lista_angajat.LAST
+                    LOOP
+                        IF v_lista_aux_angajat(i).cod_angajat = v_lista_angajat(j).cod_angajat THEN
+                            v_deja_luat := TRUE;
+                        END IF;
+                    END LOOP;
+                END IF;
+                
+                IF v_deja_luat = FALSE THEN
+                    v_lista_angajat.EXTEND;
+                    v_lista_angajat(v_lista_angajat.COUNT) := v_lista_aux_angajat(i);
+                END IF;
+        END LOOP;
+        --bucatar
+        SELECT
+                        b.cod_angajat,
+                        a.nume,
+                        a.prenume,
+                        a.salariu,
+                        b.cod_restaurant,
+                        'bucatar',
+                        l.cod_locatie,
+                        l.adresa
+        BULK COLLECT INTO v_lista_aux_angajat
+        FROM bucatar b LEFT JOIN angajat a ON (b.cod_angajat = a.cod_angajat)
+        LEFT JOIN restaurant r ON (b.cod_restaurant = r.cod_restaurant)
+        LEFT JOIN locatie l ON (r.cod_locatie = l.cod_locatie);
+        
+        FOR i IN v_lista_aux_angajat.FIRST..v_lista_aux_angajat.LAST
+        LOOP
+                v_deja_luat := FALSE;
+                
+                IF v_lista_angajat.COUNT > 0 THEN
+                    FOR j IN v_lista_angajat.FIRST..v_lista_angajat.LAST
+                    LOOP
+                        IF v_lista_aux_angajat(i).cod_angajat = v_lista_angajat(j).cod_angajat THEN
+                            v_deja_luat := TRUE;
+                        END IF;
+                    END LOOP;
+                END IF;
+                
+                IF v_deja_luat = FALSE THEN
+                    v_lista_angajat.EXTEND;
+                    v_lista_angajat(v_lista_angajat.COUNT) := v_lista_aux_angajat(i);
+                END IF;
+        END LOOP;
+        
+        --mai trebuie selectati exact o data angajatii care nu lucreaza pe niciun post din cele mentionate
+        --(paznic, receptionist, administrator, chelner, bucatar)
+        FOR i IN (SELECT cod_angajat, nume, prenume, salariu FROM angajat)
+        LOOP
+            v_deja_luat := FALSE;
+            
+            FOR j IN v_lista_angajat.FIRST..v_lista_angajat.LAST
+            LOOP
+                IF v_lista_angajat(j).cod_angajat = i.cod_angajat THEN
+                    v_deja_luat := TRUE;
+                END IF;
+            END LOOP;
+            
+            IF v_deja_luat = FALSE THEN
+                v_lista_angajat.EXTEND;
+                v_lista_angajat(v_lista_angajat.COUNT) := ex13.tip_ex8(i.cod_angajat, i.nume, i.prenume, i.salariu, null, '', null, null);
+            END IF;
+            
+        END LOOP;
+        
+        v_sortat := FALSE;
+        
+        WHILE v_sortat = FALSE --BubbleSort, sortez dupa salariu lista tuturor angajatilor
+        LOOP
+            v_sortat := TRUE;
+            
+            FOR i IN 1..(v_lista_angajat.COUNT - 1)
+            LOOP
+                IF v_lista_angajat(i).salariu < v_lista_angajat(i + 1).salariu THEN
+                    v_sortat := FALSE;
+                    v_aux_angajat := v_lista_angajat(i);
+                    v_lista_angajat(i) := v_lista_angajat(i + 1);
+                    v_lista_angajat(i + 1) := v_aux_angajat;
+                END IF;
+            END LOOP;
+            
+        END LOOP;
+        
+        RETURN v_lista_angajat(N);
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('Nu exista angajati in baza de date');
+            RETURN NULL;
+        WHEN N_INVALID THEN
+            DBMS_OUTPUT.PUT_LINE('Valoarea N data ca parametru functiei este un numar invalid (negativ sau 0)');
+            RETURN NULL;
+        WHEN N_PREA_MARE THEN
+            DBMS_OUTPUT.PUT_LINE('Valoarea N data ca parametru functiei este un numar mai mare decat numarul total de angajati');
+            RETURN NULL;
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Alte erori');
+            RETURN NULL;
+    END ex8;
+    
+    PROCEDURE ex9(denumireRestaurant restaurant.denumire%TYPE) IS
+        TYPE tip_info_restaurant IS RECORD
+        (
+            cod_restaurant restaurant.cod_restaurant%TYPE,
+            numar_stele restaurant.numar_stele%TYPE,
+            adresa locatie.adresa%TYPE,
+            cod_fel_de_mancare fel_de_mancare.cod_fel_de_mancare%TYPE,
+            denumire_fel_de_mancare fel_de_mancare.denumire%TYPE,
+            cod_furnizor furnizor.cod_furnizor%TYPE,
+            cod_hotel hotel.cod_hotel%TYPE,
+            denumire_hotel hotel.denumire%TYPE
+        );
+        TYPE tip_lista_info_restaurant IS VARRAY(1000) OF tip_info_restaurant;
+        v_info_restaurant tip_info_restaurant;
+        v_lista_info_restaurant tip_lista_info_restaurant := tip_lista_info_restaurant();
+        
+        v_cod_restaurant restaurant.cod_restaurant%TYPE;
+        
+        TYPE tip_info_fel_de_mancare IS RECORD
+        (
+            cod_fel_de_mancare fel_de_mancare.cod_fel_de_mancare%TYPE,
+            denumire fel_de_mancare.denumire%TYPE
+        );
+        
+        TYPE tip_tabel_feluri_de_mancare IS TABLE OF tip_info_fel_de_mancare;
+        TYPE tip_tabel_furnizori IS TABLE OF furnizor.cod_furnizor%TYPE;
+        
+        tabel_feluri_de_mancare tip_tabel_feluri_de_mancare := tip_tabel_feluri_de_mancare();
+        tabel_furnizori tip_tabel_furnizori := tip_tabel_furnizori();
+        
+        v_deja_exista BOOLEAN := FALSE;
+        
+        CURSOR c_info_restaurant(codRestaurant restaurant.cod_restaurant%TYPE)
+        IS
+        SELECT r.cod_restaurant, r.numar_stele, l.adresa, m.cod_fel_de_mancare, m.denumire, f.cod_furnizor, h.cod_hotel, h.denumire
+        FROM restaurant r LEFT JOIN locatie l ON (r.cod_locatie = l.cod_locatie)
+        LEFT JOIN restaurant_serveste_fel_de_mancare rm ON (r.cod_restaurant = rm.cod_restaurant)
+        LEFT JOIN fel_de_mancare m ON (rm.cod_fel_de_mancare = m.cod_fel_de_mancare)
+        LEFT JOIN hotel h ON (r.cod_hotel = h.cod_hotel)
+        LEFT JOIN furnizor_semneaza_cu_restaurant_mai_multe_contracte frc ON (r.cod_restaurant = frc.cod_restaurant)
+        LEFT JOIN furnizor f ON (frc.cod_furnizor = f.cod_furnizor)
+        WHERE r.cod_restaurant = codRestaurant;
+        
+        NICIUN_FEL_DE_MANCARE EXCEPTION;
+        NICIUN_FURNIZOR EXCEPTION;
+        
+        PRAGMA EXCEPTION_INIT(NICIUN_FEL_DE_MANCARE, -20001);
+        PRAGMA EXCEPTION_INIT(NICIUN_FURNIZOR, -20002);
+        
+    BEGIN
+        SELECT cod_restaurant INTO v_cod_restaurant --acest query va declansa exceptiile NO_DATA_FOUND sau TOO_MANY_ROWS
+        FROM restaurant WHERE INITCAP(denumire) = INITCAP(denumireRestaurant);
+        
+        OPEN c_info_restaurant(v_cod_restaurant);
+        
+        FETCH c_info_restaurant INTO v_info_restaurant;
+        
+        WHILE c_info_restaurant%FOUND
+        LOOP
+            v_lista_info_restaurant.EXTEND;
+            v_lista_info_restaurant(v_lista_info_restaurant.COUNT) := v_info_restaurant;
+            FETCH c_info_restaurant INTO v_info_restaurant;
+        END LOOP;
+        
+        CLOSE c_info_restaurant;
+        
+        
+        FOR i IN v_lista_info_restaurant.FIRST..v_lista_info_restaurant.LAST
+        LOOP
+            IF v_lista_info_restaurant(i).cod_fel_de_mancare IS NOT NULL THEN
+            
+                v_deja_exista := FALSE;
+                
+                IF tabel_feluri_de_mancare.COUNT > 0 THEN
+                    FOR j IN tabel_feluri_de_mancare.FIRST..tabel_feluri_de_mancare.LAST
+                    LOOP
+                        IF tabel_feluri_de_mancare(j).cod_fel_de_mancare = v_lista_info_restaurant(i).cod_fel_de_mancare THEN
+                            v_deja_exista := TRUE;
+                        END IF;
+                    END LOOP;
+                END IF;
+                
+                IF v_deja_exista = FALSE THEN
+                    tabel_feluri_de_mancare.EXTEND;
+                    tabel_feluri_de_mancare(tabel_feluri_de_mancare.LAST) := tip_info_fel_de_mancare(v_lista_info_restaurant(i).cod_fel_de_mancare, v_lista_info_restaurant(i).denumire_fel_de_mancare);
+                END IF;
+            END IF;
+            
+            IF v_lista_info_restaurant(i).cod_furnizor IS NOT NULL THEN
+                IF v_lista_info_restaurant(i).cod_furnizor NOT MEMBER OF tabel_furnizori THEN
+                    tabel_furnizori.EXTEND;
+                    tabel_furnizori(tabel_furnizori.LAST) := v_lista_info_restaurant(i).cod_furnizor;
+                END IF;
+            END IF;
+        END LOOP;
+        
+        DBMS_OUTPUT.PUT_LINE('Restaurantul ' || v_lista_info_restaurant(1).cod_restaurant || ' ' || denumireRestaurant
+                             || ' cu numarul de stele ' || v_lista_info_restaurant(1).numar_stele
+                             || ' aflat la adresa ' || v_lista_info_restaurant(1).adresa || ', ce apartine de hotelul '
+                             || v_lista_info_restaurant(1).cod_hotel || ' ' || v_lista_info_restaurant(1).denumire_hotel
+                             || ', serveste urmatoarele feluri de mancare: ');
+                             
+                       
+        IF tabel_feluri_de_mancare.COUNT > 0 THEN
+            FOR i IN tabel_feluri_de_mancare.FIRST..tabel_feluri_de_mancare.LAST
+            LOOP
+                DBMS_OUTPUT.PUT_LINE(tabel_feluri_de_mancare(i).cod_fel_de_mancare || ' ' || tabel_feluri_de_mancare(i).denumire);
+            END LOOP;
+        ELSE
+            RAISE NICIUN_FEL_DE_MANCARE;
+        END IF;
+        
+        DBMS_OUTPUT.PUT_LINE('Si are contracte semnate cu urmatorii furnizori: ');
+        
+        IF tabel_furnizori.COUNT > 0 THEN
+            FOR i IN tabel_furnizori.FIRST..tabel_furnizori.LAST
+            LOOP
+                DBMS_OUTPUT.PUT_LINE(tabel_furnizori(i));
+            END LOOP;
+        ELSE
+            RAISE NICIUN_FURNIZOR;
+        END IF;
+        
+        FORALL i IN tabel_furnizori.FIRST..tabel_furnizori.LAST
+            DELETE FROM furnizor_semneaza_cu_restaurant_mai_multe_contracte frc
+            WHERE frc.cod_furnizor = tabel_furnizori(i) AND frc.cod_restaurant = v_cod_restaurant;
+        
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('Restaurantul cu denumirea ' || denumireRestaurant || ' nu apare in baza de date');
+        WHEN TOO_MANY_ROWS THEN
+            DBMS_OUTPUT.PUT_LINE('Restaurantul cu denumirea ' || denumireRestaurant || ' apare de mai multe ori in baza de date');
+        WHEN NICIUN_FEL_DE_MANCARE THEN
+            DBMS_OUTPUT.PUT_LINE('Restaurantul cu denumirea ' || denumireRestaurant || ' nu ofera niciun fel de mancare');
+        WHEN NICIUN_FURNIZOR THEN
+            DBMS_OUTPUT.PUT_LINE('Restaurantul cu denumirea ' || denumireRestaurant || ' nu are contract incheiat cu niciun furnizor');
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Alte erori');
+    END ex9;
+END ex13;
+/
+
+BEGIN
+    ex13.ex6;
+    ex13.ex7;
+END;
+/
+
+--pentru ex8
+
+DECLARE
+    --v_n NUMBER(10) := &p_n;
+    v_rezultat ex13.tip_ex8;
+BEGIN
+    v_rezultat := ex13.ex8(-1);
+    DBMS_OUTPUT.PUT_LINE('Angajatul ' || v_rezultat.cod_angajat || ' ' || v_rezultat.nume || ' '
+                         || v_rezultat.prenume || ', avand salariul ' || v_rezultat.salariu || ', lucreaza la ' || v_rezultat.cod_munca
+                         || ', pe post de ' || v_rezultat.tip_munca || ', locatia muncii fiind ' || v_rezultat.cod_locatie || ' ' ||
+                         v_rezultat.adresa);
+                         
+    v_rezultat := ex13.ex8(0);
+    DBMS_OUTPUT.PUT_LINE('Angajatul ' || v_rezultat.cod_angajat || ' ' || v_rezultat.nume || ' '
+                         || v_rezultat.prenume || ', avand salariul ' || v_rezultat.salariu || ', lucreaza la ' || v_rezultat.cod_munca
+                         || ', pe post de ' || v_rezultat.tip_munca || ', locatia muncii fiind ' || v_rezultat.cod_locatie || ' ' ||
+                         v_rezultat.adresa);
+
+    v_rezultat := ex13.ex8(4);
+    DBMS_OUTPUT.PUT_LINE('Angajatul ' || v_rezultat.cod_angajat || ' ' || v_rezultat.nume || ' '
+                         || v_rezultat.prenume || ', avand salariul ' || v_rezultat.salariu || ', lucreaza la ' || v_rezultat.cod_munca
+                         || ', pe post de ' || v_rezultat.tip_munca || ', locatia muncii fiind ' || v_rezultat.cod_locatie || ' ' ||
+                         v_rezultat.adresa);
+    
+    v_rezultat := ex13.ex8(101);
+    DBMS_OUTPUT.PUT_LINE('Angajatul ' || v_rezultat.cod_angajat || ' ' || v_rezultat.nume || ' '
+                         || v_rezultat.prenume || ', avand salariul ' || v_rezultat.salariu || ', lucreaza la ' || v_rezultat.cod_munca
+                         || ', pe post de ' || v_rezultat.tip_munca || ', locatia muncii fiind ' || v_rezultat.cod_locatie || ' ' ||
+                         v_rezultat.adresa);
+END;
+/
+
+ROLLBACK;
+COMMIT;
+
+DELETE FROM paznic;
+DELETE FROM receptionist;
+DELETE FROM administrator;
+DELETE FROM chelner;
+DELETE FROM bucatar;
+
+DELETE FROM angajat;
+
+--pentru ex9
+
+INSERT INTO RESTAURANT(cod_restaurant, cod_hotel, cod_locatie, denumire, numar_stele, an_infiintare)
+VALUES(SECVENTA_RESTAURANT.NEXTVAL, 4, 7, 'Madrid', NULL, 1993); -- restaurantul 'Madrid' va declansa exceptia de TOO_MANY_ROWS
+INSERT INTO RESTAURANT(cod_restaurant, cod_hotel, cod_locatie, denumire, numar_stele, an_infiintare)
+VALUES(SECVENTA_RESTAURANT.NEXTVAL, 4, 7, 'Londra3', NULL, 1973); -- restaurantul 'Londra3' va declansa exceptia NICIUN_FEL_DE_MANCARE
+
+DECLARE
+    --v_denumire_restaurant restaurant.denumire%TYPE := Initcap('&p_denumire_restaurant');
+BEGIN
+    ex13.ex9('Londra3'); --nu are niciun fel de mancare
+    ex13.ex9('Madrid'); --too_many_rows
+    ex13.ex9('Paris'); --nu are niciun fel de mancare
+    ex13.ex9('Napoli'); --nu are furnizori
+    ex13.ex9('Amsterdam'); --nu exista
+    ex13.ex9('Roma'); --ok
+END;
+/
+
+ROLLBACK;
+COMMIT;
+
+SELECT * FROM restaurant;
+SELECT * FROM furnizor_semneaza_cu_restaurant_mai_multe_contracte;
+SELECT * FROM restaurant_serveste_fel_de_mancare;
+
+ALTER TRIGGER ex10 DISABLE;
+ALTER TRIGGER ex10 ENABLE;
+
+
+
+/*
+Exercitiul 14
+Pachet
+
+Procedura adauga_facilitate_camera primeste o camera si o facilitate si asociaza facilitatea respectiva camerei.
+Procedura salariu_mediu_angajat intoarce in parametrul de out salariul mediu al tuturor angajatilor.
+Procedura afisare_sortata_hotel afiseaza hotelurile in ordinea crescatoare a numarului de camere din fiecare hotel.
+
+Functia angajati_dupa_salariu intoarce un tabel ce contine angajatii care au salariul sub o valoare data ca parametru.
+Functia cel_mai_lung_contract_restaurant intoarce informatii despre cel mai longeviv contract pe care restaurantul dat ca parametru l-a avut.
+Functia creste_salariu_angajat creste salariul cu x% al angajatilor ce inainte aveau salariul intr-un interval de valori dat ca parametru. Functia intoarce cati angajati au beneficiat de crestere.
+*/
+
+----------------------------------------------------------
+
+SET SERVEROUTPUT ON
+SET VERIFY OFF
+
+CREATE OR REPLACE PACKAGE ex14 IS
+    TYPE tip_hotel IS RECORD
+    (
+        cod_hotel hotel.cod_hotel%TYPE,
+        denumire hotel.denumire%TYPE,
+        nr_camere NUMBER(10)
+    );
+    TYPE tip_tabel_hotel IS TABLE OF tip_hotel INDEX BY BINARY_INTEGER;
+    
+    TYPE tip_angajat IS RECORD
+    (
+        cod_angajat angajat.cod_angajat%TYPE,
+        nume angajat.nume%TYPE,
+        prenume angajat.prenume%TYPE,
+        salariu angajat.salariu%TYPE
+    );
+    TYPE tip_tabel_angajat IS TABLE OF tip_angajat;
+    
+    TYPE tip_contract IS RECORD
+    (
+        cod_contract contract.cod_contract%TYPE,
+        data_inceput contract.data_inceput%TYPE,
+        data_sfarsit contract.data_sfarsit%TYPE,
+        cod_furnizor furnizor.cod_furnizor%TYPE,
+        nume_furnizor furnizor.nume%TYPE,
+        durata_contract_in_zile NUMBER(10)
+    );
+
+    PROCEDURE adauga_facilitate_camera(p_cod_camera IN NUMBER, p_cod_facilitate IN NUMBER);
+    PROCEDURE salariu_mediu_angajat(p_salariu_mediu OUT NUMBER);
+    PROCEDURE afisare_sortata_hotel;
+    
+    FUNCTION angajati_dupa_salariu(p_salariu NUMBER) RETURN tip_tabel_angajat;
+    FUNCTION cel_mai_lung_contract_restaurant(p_cod_restaurant NUMBER) RETURN tip_contract;
+    FUNCTION creste_salariu_angajat(p_x NUMBER, p_salariu_minim NUMBER, p_salariu_maxim NUMBER) RETURN NUMBER;
+END ex14;
+/
+
+CREATE OR REPLACE PACKAGE BODY ex14 IS
+    PROCEDURE adauga_facilitate_camera(p_cod_camera IN NUMBER, p_cod_facilitate IN NUMBER) IS
+        NU_EXISTA_CAMERA EXCEPTION;
+        NU_EXISTA_FACILITATE EXCEPTION;
+        FACILITATE_DEJA_EXISTENTA EXCEPTION;
+        
+        PRAGMA EXCEPTION_INIT(NU_EXISTA_CAMERA, -20001);
+        PRAGMA EXCEPTION_INIT(NU_EXISTA_FACILITATE, -20002);
+        PRAGMA EXCEPTION_INIT(FACILITATE_DEJA_EXISTENTA, -20003);
+        
+        v_nr NUMBER(10);
+        v_cod_hotel NUMBER(10);
+    BEGIN
+        SELECT COUNT(*) INTO v_nr FROM camera
+        WHERE cod_camera = p_cod_camera;
+        
+        IF v_nr = 0 THEN
+            RAISE NU_EXISTA_CAMERA;
+        END IF;
+        
+        SELECT COUNT(*) INTO v_nr FROM facilitate
+        WHERE cod_facilitate = p_cod_facilitate;
+        
+        IF v_nr = 0 THEN
+            RAISE NU_EXISTA_FACILITATE;
+        END IF;
+        
+        SELECT COUNT(*) INTO v_nr FROM camera_prezinta_facilitate
+        WHERE cod_camera = p_cod_camera AND cod_facilitate = p_cod_facilitate;
+        
+        IF v_nr > 0 THEN
+            RAISE FACILITATE_DEJA_EXISTENTA;
+        END IF;
+        
+        SELECT cod_hotel INTO v_cod_hotel FROM camera
+        WHERE cod_camera = p_cod_camera;
+        
+        INSERT INTO camera_prezinta_facilitate(cod_camera, cod_hotel, cod_facilitate)
+        VALUES (p_cod_camera, v_cod_hotel, p_cod_facilitate);
+        
+    EXCEPTION
+        WHEN NU_EXISTA_CAMERA THEN
+            DBMS_OUTPUT.PUT_LINE('Nu exista camera cu id-ul ' || p_cod_camera);
+        WHEN NU_EXISTA_FACILITATE THEN
+            DBMS_OUTPUT.PUT_LINE('Nu exista facilitatea cu id-ul ' || p_cod_facilitate);
+        WHEN FACILITATE_DEJA_EXISTENTA THEN
+            DBMS_OUTPUT.PUT_LINE('Facilitatea cu id-ul ' || p_cod_facilitate || ' deja este asociata camerei cu id-ul ' || p_cod_camera);
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Alte erori');
+    END adauga_facilitate_camera;
+    
+    PROCEDURE salariu_mediu_angajat(p_salariu_mediu OUT NUMBER) IS
+        NU_EXISTA_ANGAJATI EXCEPTION;
+        
+        PRAGMA EXCEPTION_INIT(NU_EXISTA_ANGAJATI, -20001);
+        
+        v_nr NUMBER(10);
+    BEGIN
+        SELECT COUNT(*) INTO v_nr FROM angajat;
+        
+        IF v_nr = 0 THEN
+            RAISE NU_EXISTA_ANGAJATI;
+        END IF;
+        
+        SELECT AVG(salariu) INTO p_salariu_mediu FROM angajat;
+        
+    EXCEPTION
+        WHEN NU_EXISTA_ANGAJATI THEN
+            DBMS_OUTPUT.PUT_LINE('Nu exista angajati');
+            p_salariu_mediu := -20001;
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Alte erori');
+            p_salariu_mediu := -1;
+    END salariu_mediu_angajat;
+    
+    PROCEDURE afisare_sortata_hotel IS
+        tabel_hotel tip_tabel_hotel;
+        
+        NU_EXISTA_HOTELURI EXCEPTION;
+        
+        PRAGMA EXCEPTION_INIT(NU_EXISTA_HOTELURI, -20001);
+        
+        v_nr NUMBER(10);
+        
+        v_nr_elemente NUMBER(10) := 0;
+        
+        v_sortat BOOLEAN;
+        
+        v_auxiliar tip_hotel;
+    BEGIN
+        SELECT COUNT(*) INTO v_nr FROM hotel;
+        
+        IF v_nr = 0 THEN
+            RAISE NU_EXISTA_HOTELURI;
+        END IF;
+        
+        FOR x IN (SELECT cod_hotel, denumire FROM hotel)
+        LOOP
+            v_nr_elemente := v_nr_elemente + 1;
+            tabel_hotel(v_nr_elemente) := tip_hotel(x.cod_hotel, x.denumire, 0);
+            FOR y IN (SELECT cod_hotel FROM camera WHERE cod_hotel = x.cod_hotel)
+            LOOP
+                tabel_hotel(v_nr_elemente).nr_camere := tabel_hotel(v_nr_elemente).nr_camere + 1;
+            END LOOP;
+        END LOOP;
+        
+        --sortare (bubblesort)
+        v_sortat := FALSE;
+        WHILE v_sortat = FALSE
+        LOOP
+            v_sortat := TRUE;
+            
+            FOR x IN 2..v_nr_elemente
+            LOOP
+                IF tabel_hotel(x).nr_camere < tabel_hotel(x - 1).nr_camere THEN
+                    v_sortat := FALSE;
+                    
+                    v_auxiliar := tabel_hotel(x - 1);
+                    tabel_hotel(x - 1) := tabel_hotel(x);
+                    tabel_hotel(x) := v_auxiliar;
+                    
+                END IF;
+            END LOOP;
+            
+        END LOOP;
+        
+        --afisare
+        FOR x IN 1..v_nr_elemente
+        LOOP
+            DBMS_OUTPUT.PUT_LINE(tabel_hotel(x).cod_hotel || ' ' || tabel_hotel(x).denumire || ' ' || tabel_hotel(x).nr_camere);
+        END LOOP;
+        
+    EXCEPTION
+        WHEN NU_EXISTA_HOTELURI THEN
+            DBMS_OUTPUT.PUT_LINE('Nu exista hoteluri in baza de date');
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Alte erori');
+    END afisare_sortata_hotel;
+    
+    FUNCTION angajati_dupa_salariu(p_salariu NUMBER) RETURN tip_tabel_angajat IS
+        NU_EXISTA_ANGAJATI EXCEPTION;
+        
+        PRAGMA EXCEPTION_INIT(NU_EXISTA_ANGAJATI, -20001);
+        
+        v_nr NUMBER(10);
+        
+        v_tabel_angajat tip_tabel_angajat := tip_tabel_angajat();
+    BEGIN
+        SELECT COUNT(*) INTO v_nr FROM angajat WHERE salariu < p_salariu;
+        
+        IF v_nr = 0 THEN
+            RAISE NU_EXISTA_ANGAJATI;
+        END IF;
+        
+        SELECT cod_angajat, nume, prenume, salariu BULK COLLECT INTO v_tabel_angajat
+        FROM angajat WHERE salariu < p_salariu;
+        
+        RETURN v_tabel_angajat;
+    EXCEPTION
+        WHEN NU_EXISTA_ANGAJATI THEN
+            DBMS_OUTPUT.PUT_LINE('Nu exista angajati cu salariul sub valoarea data');
+            RETURN v_tabel_angajat;
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Alte erori');
+            RETURN v_tabel_angajat;
+    END angajati_dupa_salariu;
+    
+    FUNCTION cel_mai_lung_contract_restaurant(p_cod_restaurant NUMBER) RETURN tip_contract IS
+        NU_EXISTA_RESTAURANT EXCEPTION;
+        NU_EXISTA_CONTRACT EXCEPTION;
+        
+        PRAGMA EXCEPTION_INIT(NU_EXISTA_RESTAURANT, -20001);
+        PRAGMA EXCEPTION_INIT(NU_EXISTA_CONTRACT, -20002);
+        
+        v_contract tip_contract := tip_contract();
+        
+        v_nr NUMBER(10);
+        
+        v_nr_zile NUMBER(10) := -1;
+        
+        v_nr_zile_crt NUMBER(10);
+        
+    BEGIN
+        SELECT COUNT(*) INTO v_nr FROM restaurant
+        WHERE cod_restaurant = p_cod_restaurant;
+        
+        IF v_nr = 0 THEN
+            RAISE NU_EXISTA_RESTAURANT;
+        END IF;
+        
+        SELECT COUNT(*) INTO v_nr FROM furnizor_semneaza_cu_restaurant_mai_multe_contracte
+        WHERE cod_restaurant = p_cod_restaurant;
+        
+        IF v_nr = 0 THEN
+            RAISE NU_EXISTA_CONTRACT;
+        END IF;
+        
+        FOR x IN (SELECT c.cod_contract, c.data_inceput, c.data_sfarsit, f.cod_furnizor, f.nume
+                  FROM contract c JOIN furnizor_semneaza_cu_restaurant_mai_multe_contracte frc ON (c.cod_contract = frc.cod_contract)
+                  JOIN furnizor f ON (frc.cod_furnizor = f.cod_furnizor) JOIN restaurant r ON (frc.cod_restaurant = r.cod_restaurant)
+                  WHERE r.cod_restaurant = p_cod_restaurant)
+        LOOP
+            v_nr_zile_crt := x.data_sfarsit - x.data_inceput;
+            IF v_nr_zile_crt > v_nr_zile THEN
+                v_nr_zile := v_nr_zile_crt;
+                v_contract := tip_contract(x.cod_contract, x.data_inceput, x.data_sfarsit, x.cod_furnizor, x.nume, v_nr_zile);
+            END IF;
+        END LOOP;
+        
+        RETURN v_contract;
+    EXCEPTION
+        WHEN NU_EXISTA_RESTAURANT THEN
+            DBMS_OUTPUT.PUT_LINE('Nu exista restaurantul cu id-ul ' || p_cod_restaurant);
+            RETURN v_contract;
+        WHEN NU_EXISTA_CONTRACT THEN
+            DBMS_OUTPUT.PUT_LINE('Restaurantul cu id-ul ' || p_cod_restaurant || ' nu are niciun contract semnat');
+            RETURN v_contract;
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Alte erori');
+            RETURN v_contract;
+    END cel_mai_lung_contract_restaurant;
+    
+    FUNCTION creste_salariu_angajat(p_x NUMBER, p_salariu_minim NUMBER, p_salariu_maxim NUMBER) RETURN NUMBER IS
+        NICIUN_ANGAJAT_IN_INTERVAL EXCEPTION;
+        INTERVAL_INVALID EXCEPTION;
+        PROCENT_INVALID EXCEPTION;
+        
+        PRAGMA EXCEPTION_INIT(NICIUN_ANGAJAT_IN_INTERVAL, -20001);
+        PRAGMA EXCEPTION_INIT(INTERVAL_INVALID, -20002);
+        PRAGMA EXCEPTION_INIT(PROCENT_INVALID, -20003);
+        
+        v_nr NUMBER(10);
+    BEGIN
+        IF p_x <= 0 OR p_x > 1 THEN
+            RAISE PROCENT_INVALID;
+        END IF;
+        
+        IF p_salariu_minim > p_salariu_maxim THEN
+            RAISE INTERVAL_INVALID;
+        END IF;
+        
+        SELECT COUNT(*) INTO v_nr FROM angajat
+        WHERE p_salariu_minim <= salariu AND salariu <= p_salariu_maxim;
+        
+        IF v_nr = 0 THEN
+            RAISE NICIUN_ANGAJAT_IN_INTERVAL;
+        END IF;
+        
+        UPDATE angajat
+        SET salariu = salariu + salariu * p_x
+        WHERE p_salariu_minim <= salariu AND salariu <= p_salariu_maxim;
+        
+        v_nr := SQL%ROWCOUNT;
+        
+        RETURN v_nr;
+    EXCEPTION
+        WHEN NICIUN_ANGAJAT_IN_INTERVAL THEN
+            DBMS_OUTPUT.PUT_LINE('Niciun angajat nu a fost afectat de modificare');
+            RETURN -20001;
+        WHEN INTERVAL_INVALID THEN
+            DBMS_OUTPUT.PUT_LINE('Intervalul dat ca parametru este invalid');
+            RETURN -20002;
+        WHEN PROCENT_INVALID THEN
+            DBMS_OUTPUT.PUT_LINE('Procentul de modificare este invalid');
+            RETURN -20003;
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Alte erori');
+            RETURN -20004;
+    END creste_salariu_angajat;
+    
+END ex14;
+/
+
+BEGIN
+    ex14.adauga_facilitate_camera(-1, 2); --exceptie (nu exista camera)
+    ex14.adauga_facilitate_camera(1, -2); --exceptie (nu exista facilitatea)
+    ex14.adauga_facilitate_camera(1, 2);
+    ex14.adauga_facilitate_camera(1, 2); --facilitatea deja exista pentru camera (exceptie)
+END;
+/
+
+DELETE FROM paznic;
+DELETE FROM receptionist;
+DELETE FROM administrator;
+DELETE FROM chelner;
+DELETE FROM bucatar;
+
+DELETE FROM angajat;
+
+DECLARE
+    v_salariu_mediu NUMBER(10, 2);
+BEGIN
+    ex14.salariu_mediu_angajat(v_salariu_mediu);
+    DBMS_OUTPUT.PUT_LINE(v_salariu_mediu);
+END;
+/
+
+ROLLBACK;
+COMMIT;
+
+ALTER TRIGGER ex10 ENABLE;
+ALTER TRIGGER ex10 DISABLE;
+
+DELETE FROM bucatar;
+DELETE FROM chelner;
+DELETE FROM administrator;
+DELETE FROM receptionist;
+DELETE FROM paznic;
+DELETE FROM angajat;
+DELETE FROM furnizor_semneaza_cu_restaurant_mai_multe_contracte;
+DELETE FROM restaurant_serveste_fel_de_mancare;
+DELETE FROM restaurant;
+DELETE FROM fel_de_mancare;
+DELETE FROM contract;
+DELETE FROM furnizor;
+DELETE FROM loc_de_parcare;
+DELETE FROM zona_de_parcare;
+DELETE FROM client_rezerva_camera;
+DELETE FROM camera_prezinta_facilitate;
+DELETE FROM client;
+DELETE FROM facilitate;
+DELETE FROM camera;
+DELETE FROM hotel;
+
+BEGIN
+    ex14.afisare_sortata_hotel();
+END;
+/
+
+DECLARE
+    tabel_angajat ex14.tip_tabel_angajat;
+BEGIN
+    tabel_angajat := ex14.angajati_dupa_salariu(5000);
+    IF tabel_angajat.COUNT > 0 THEN
+        FOR x IN tabel_angajat.FIRST..tabel_angajat.LAST
+        LOOP
+            DBMS_OUTPUT.PUT_LINE(tabel_angajat(x).cod_angajat || ' ' || tabel_angajat(x).nume || ' ' || tabel_angajat(x).prenume || ' ' || tabel_angajat(x).salariu);
+        END LOOP;
+    END IF;
+    
+    tabel_angajat := ex14.angajati_dupa_salariu(1000); --exceptie, nu exista angajati
+    IF tabel_angajat.COUNT > 0 THEN
+        FOR x IN tabel_angajat.FIRST..tabel_angajat.LAST
+        LOOP
+            DBMS_OUTPUT.PUT_LINE(tabel_angajat(x).cod_angajat || ' ' || tabel_angajat(x).nume || ' ' || tabel_angajat(x).prenume || ' ' || tabel_angajat(x).salariu);
+        END LOOP;
+    END IF;
+END;
+/
+
+DECLARE
+    contract ex14.tip_contract;
+BEGIN
+    contract := ex14.cel_mai_lung_contract_restaurant(1);
+    DBMS_OUTPUT.PUT_LINE(contract.cod_contract || ' ' || contract.data_inceput || ' ' || contract.data_sfarsit || ' ' || contract.cod_furnizor || ' ' || contract.nume_furnizor || ' ' || contract.durata_contract_in_zile);
+    
+    contract := ex14.cel_mai_lung_contract_restaurant(-1); --nu exista restaurant
+    DBMS_OUTPUT.PUT_LINE(contract.cod_contract || ' ' || contract.data_inceput || ' ' || contract.data_sfarsit || ' ' || contract.cod_furnizor || ' ' || contract.nume_furnizor || ' ' || contract.durata_contract_in_zile);
+    
+    contract := ex14.cel_mai_lung_contract_restaurant(5); --nu exista contracte pentru restaurant
+    DBMS_OUTPUT.PUT_LINE(contract.cod_contract || ' ' || contract.data_inceput || ' ' || contract.data_sfarsit || ' ' || contract.cod_furnizor || ' ' || contract.nume_furnizor || ' ' || contract.durata_contract_in_zile);
+END;
+/
+
+DECLARE
+    v_nr NUMBER(10);
+BEGIN
+    
+    v_nr := ex14.creste_salariu_angajat(-0.01, 4510, 4520); --procent invalid
+    DBMS_OUTPUT.PUT_LINE(v_nr);
+    
+    v_nr := ex14.creste_salariu_angajat(1.01, 4510, 4520); --procent invalid
+    DBMS_OUTPUT.PUT_LINE(v_nr);
+    
+    v_nr := ex14.creste_salariu_angajat(0.1, 3000, 2000); --interval invalid
+    DBMS_OUTPUT.PUT_LINE(v_nr);
+    
+    v_nr := ex14.creste_salariu_angajat(0.1, 2000, 3000); --niciun angajat in interval
+    DBMS_OUTPUT.PUT_LINE(v_nr);
+    
+    v_nr := ex14.creste_salariu_angajat(0.1, 3900, 4100);
+    DBMS_OUTPUT.PUT_LINE(v_nr);
+END;
+/
+
+SELECT * FROM angajat
+ORDER BY salariu;
+
+SELECT * FROM angajat;
+
+SELECT * FROM camera_prezinta_facilitate;
+
+SELECT * FROM restaurant;
+
+SELECT * FROM furnizor_semneaza_cu_restaurant_mai_multe_contracte;
+
+DELETE FROM camera_prezinta_facilitate
+WHERE cod_camera = 1 AND cod_facilitate = 2;
+
+COMMIT;
+ROLLBACK;
+
+
+
+
+
+
+
+
